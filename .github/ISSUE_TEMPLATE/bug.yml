@@ -1,0 +1,22 @@
+name: Bug report
+description: Reproducible patch/API/CLI defect
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal authorized fixture and commands
+      description: Use synthetic patches; never upload secrets or proprietary devices.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Package, Node, OS and Max version (if relevant)
+    validations:
+      required: true

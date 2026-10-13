@@ -1,0 +1,60 @@
+// Public API — only import from this barrel outside this package
+
+// Types
+export type {
+  Rect,
+  PatchlineEndpoint,
+  Severity,
+  Diagnostic,
+  DiagnosticLocation,
+  ValidationResult,
+  NormalizedPatch,
+  NormalizedBox,
+  NormalizedLine,
+  PatcherMeta,
+  RuleConfig,
+  RuleOverride,
+  CustomRule,
+  ReadOptions,
+  WriteOptions,
+  BoxSpec,
+  BoxUpdate,
+} from "./types.js";
+
+// Errors
+export {
+  MaxpatParseError,
+  MaxpatStructuralError,
+  MaxpatValidationError,
+  MaxpatWriteError,
+} from "./errors.js";
+
+// IO
+export {
+  readFile,
+  writeFile,
+  serializePatch,
+  stableStringify,
+} from "./io/index.js";
+
+// Validation
+export { validateGraph } from "./validate/graph.js";
+
+// Editor
+export { PatchEditor, PatchBuilder } from "./editor/index.js";
+
+export { parsePatch, parsePatchObject, toPatchObject } from "./io/parse.js";
+
+export { MaxpatEditError } from "./errors.js";
+export type {
+  BoxQuery,
+  MatchOptions,
+  PatcherPath,
+  BuilderOptions,
+  ObjectOptions,
+} from "./editor/index.js";
+export { walkPatch, queryPatch } from "./nested.js";
+export type { PatchScope } from "./nested.js";
+
+export { diffPatches } from "./diff.js";
+export type { DiffChange, PatchDiff } from "./diff.js";

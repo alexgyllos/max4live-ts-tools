@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Maxpat CLI response v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "ok": {
+          "const": false
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "diagnostics": {
+              "type": "array"
+            },
+            "issues": {
+              "type": "array"
+            }
+          },
+          "required": ["name", "message"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["schemaVersion", "ok", "error"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "help": {
+          "type": "string"
+        }
+      },
+      "required": ["schemaVersion", "help"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": ["schemaVersion", "version"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "command": {
+          "enum": ["check", "validate"]
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "severity": {
+                "enum": ["error", "warning", "info"]
+              },
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "location": {
+                "type": "object"
+              }
+            },
+            "required": ["severity", "code", "message"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["schemaVersion", "command", "ok", "diagnostics"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "command": {
+          "const": "diff"
+        },
+        "mode": {
+          "const": "structural"
+        },
+        "equal": {
+          "type": "boolean"
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": ["added", "removed", "updated"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "before": {},
+              "after": {}
+            },
+            "required": ["kind", "path"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["schemaVersion", "command", "mode", "equal", "changes"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "command": {
+          "const": "format"
+        },
+        "ok": {
+          "const": true
+        },
+        "changed": {
+          "type": "boolean"
+        },
+        "written": {
+          "type": "boolean"
+        }
+      },
+      "required": ["schemaVersion", "command", "ok", "changed", "written"],
+      "additionalProperties": false
+    }
+  ]
+}

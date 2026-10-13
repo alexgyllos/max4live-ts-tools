@@ -1,0 +1,11 @@
+# Contributing
+
+Until the owner approves licensing and visibility, this repository is a private release candidate and grants no redistribution rights. Do not submit/copy third-party patches without documented rights.
+
+Use Node 22.12+ or 24, `npm ci`, and a focused branch/worktree. Keep code ESM, dependency-light, portable, immutable at API boundaries and lossless for supported JSON. Run build/typecheck/lint/format:check/test/pack:check/docs/examples/release:check. `npm run format` applies formatting. `lint` uses TypeScript's strict/no-unused checks; formatting is enforced separately. Add behavior regressions for safety/correctness fixes; packed CLI cases belong in scripts/pack-check.mjs. Do not use private paths, secret env vars, Max installations or network services as test prerequisites.
+
+Add synthetic fixtures with provenance notes. Real Max exports require explicit redistribution approval and version evidence. Never replace errors with console warnings or silently drop unsupported user data. New APIs need docs/examples and independent review. Simple edits must keep internal sharing; public results must not expose writable state. Validate generated data like parsed data.
+
+PRs describe the concrete problem, changed behavior, evidence/limitations and issue link. At least one independent review is required; retain author approval for merge and release. Maintainer: the repository owner. Stacked PRs merge only in reviewed dependency order; rebase/retarget and rerun checks when bases change. No auto-merge, release tags, public announcement or package publication without explicit approval.
+
+Use patch releases for compatible bug fixes; pre-1.0 incompatible APIs increment minor versions, with clear migration notes. Keep RC suffixes until every release gate is approved. Add a short entry under CHANGELOG Unreleased; the rehearsal script generates release notes from that section. Support is best-effort through issues; no service/SLA/account or telemetry.

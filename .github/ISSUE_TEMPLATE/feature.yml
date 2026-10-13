@@ -1,0 +1,13 @@
+name: Feature request
+description: Propose a useful offline patch workflow
+body:
+  - type: textarea
+    id: workflow
+    attributes:
+      label: User workflow and expected result
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Example and compatibility/safety considerations

@@ -1,0 +1,64 @@
+{
+  "name": "max4live-ts-tools",
+  "version": "0.1.0-rc.1",
+  "private": true,
+  "description": "Safe offline tools for Max .maxpat JSON patchers",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    }
+  },
+  "bin": {
+    "maxpat": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexgyllos/max4live-ts-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexgyllos/max4live-ts-tools/issues"
+  },
+  "homepage": "https://github.com/alexgyllos/max4live-ts-tools#readme",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && vitest run",
+    "test:ci": "npm run build && vitest run",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepack": "npm run build",
+    "pack:check": "node scripts/pack-check.mjs",
+    "docs": "typedoc --options typedoc.json",
+    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
+    "release:check": "node scripts/release-rehearsal.mjs",
+    "audit:history": "node scripts/audit-history.mjs"
+  },
+  "dependencies": {
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "typescript": "5.9.3",
+    "vitest": "5.0.4",
+    "prettier": "3.9.10",
+    "typedoc": "0.28.20"
+  }
+}

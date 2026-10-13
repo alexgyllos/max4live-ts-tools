@@ -1,0 +1,94 @@
+# Dependency licence inventory
+
+Snapshot from the checked-in lockfile. npm metadata is not a legal determination; owner review should inspect corresponding package LICENSE files before distribution. Dependencies are installed separately, not bundled/vendor-copied. Zod is the only direct runtime dependency. TypeScript and the remaining tooling are development dependencies excluded by the package allowlist. Initial source/fixture ownership is a separate unresolved gate.
+
+| Package/path                          | Version | Declared licence | Scope                      |
+| ------------------------------------- | ------- | ---------------- | -------------------------- |
+| @gerrit0/mini-shiki                   | 3.23.0  | MIT              | development/optional build |
+| @jridgewell/resolve-uri               | 3.1.2   | MIT              | development/optional build |
+| @jridgewell/sourcemap-codec           | 1.6.0   | MIT              | development/optional build |
+| @jridgewell/trace-mapping             | 0.3.31  | MIT              | development/optional build |
+| @oxc-project/types                    | 0.153.0 | MIT              | development/optional build |
+| @rolldown/binding-android-arm-eabi    | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-android-arm64       | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-darwin-arm64        | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-darwin-x64          | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-freebsd-x64         | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-arm-gnueabihf | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-arm64-gnu     | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-arm64-musl    | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-ppc64-gnu     | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-s390x-gnu     | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-x64-gnu       | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-linux-x64-musl      | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-openharmony-arm64   | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-win32-arm64-msvc    | 1.2.13  | MIT              | development/optional build |
+| @rolldown/binding-win32-x64-msvc      | 1.2.13  | MIT              | development/optional build |
+| @rolldown/pluginutils                 | 1.0.1   | MIT              | development/optional build |
+| @shikijs/engine-oniguruma             | 3.23.0  | MIT              | development/optional build |
+| @shikijs/langs                        | 3.23.0  | MIT              | development/optional build |
+| @shikijs/themes                       | 3.23.0  | MIT              | development/optional build |
+| @shikijs/types                        | 3.23.0  | MIT              | development/optional build |
+| @shikijs/vscode-textmate              | 10.0.2  | MIT              | development/optional build |
+| @types/chai                           | 5.2.3   | MIT              | development/optional build |
+| @types/deep-eql                       | 4.0.2   | MIT              | development/optional build |
+| @types/estree                         | 1.0.9   | MIT              | development/optional build |
+| @types/hast                           | 3.0.5   | MIT              | development/optional build |
+| @types/node                           | 22.20.4 | MIT              | development/optional build |
+| @types/unist                          | 3.0.3   | MIT              | development/optional build |
+| @vitest/mocker                        | 5.0.4   | MIT              | development/optional build |
+| @vitest/spy                           | 5.0.4   | MIT              | development/optional build |
+| argparse                              | 2.0.1   | Python-2.0       | development/optional build |
+| assertion-error                       | 2.0.1   | MIT              | development/optional build |
+| balanced-match                        | 4.0.4   | MIT              | development/optional build |
+| brace-expansion                       | 5.0.12  | MIT              | development/optional build |
+| chai                                  | 6.3.0   | MIT              | development/optional build |
+| detect-libc                           | 2.1.2   | Apache-2.0       | development/optional build |
+| entities                              | 4.5.0   | BSD-2-Clause     | development/optional build |
+| es-module-lexer                       | 2.3.2   | MIT              | development/optional build |
+| estree-walker                         | 3.0.3   | MIT              | development/optional build |
+| expect-type                           | 1.4.0   | Apache-2.0       | development/optional build |
+| fdir                                  | 6.5.0   | MIT              | development/optional build |
+| fsevents                              | 2.3.3   | MIT              | development/optional build |
+| lightningcss                          | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-android-arm64            | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-darwin-arm64             | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-darwin-x64               | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-freebsd-x64              | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-linux-arm-gnueabihf      | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-linux-arm64-gnu          | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-linux-arm64-musl         | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-linux-x64-gnu            | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-linux-x64-musl           | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-win32-arm64-msvc         | 1.33.0  | MPL-2.0          | development/optional build |
+| lightningcss-win32-x64-msvc           | 1.33.0  | MPL-2.0          | development/optional build |
+| linkify-it                            | 5.0.2   | MIT              | development/optional build |
+| lunr                                  | 2.3.9   | MIT              | development/optional build |
+| magic-string                          | 1.4.3   | MIT              | development/optional build |
+| markdown-it                           | 14.3.2  | MIT              | development/optional build |
+| mdurl                                 | 2.1.0   | MIT              | development/optional build |
+| minimatch                             | 10.2.6  | BlueOak-1.0.0    | development/optional build |
+| nanoid                                | 3.3.20  | MIT              | development/optional build |
+| obug                                  | 3.0.0   | MIT              | development/optional build |
+| picocolors                            | 1.1.1   | ISC              | development/optional build |
+| picomatch                             | 4.0.7   | MIT              | development/optional build |
+| postcss                               | 8.5.30  | MIT              | development/optional build |
+| prettier                              | 3.9.10  | MIT              | development/optional build |
+| punycode.js                           | 2.3.1   | MIT              | development/optional build |
+| rolldown                              | 1.2.13  | MIT              | development/optional build |
+| source-map-js                         | 1.2.2   | BSD-3-Clause     | development/optional build |
+| std-env                               | 4.3.0   | MIT              | development/optional build |
+| tinybench                             | 6.2.2   | MIT              | development/optional build |
+| tinyexec                              | 1.3.1   | MIT              | development/optional build |
+| tinyglobby                            | 0.2.17  | MIT              | development/optional build |
+| typedoc                               | 0.28.20 | Apache-2.0       | development/optional build |
+| typescript                            | 5.9.3   | Apache-2.0       | development/optional build |
+| uc.micro                              | 2.1.0   | MIT              | development/optional build |
+| undici-types                          | 6.21.0  | MIT              | development/optional build |
+| vite                                  | 8.3.4   | MIT              | development/optional build |
+| vitest                                | 5.0.4   | MIT              | development/optional build |
+| why-is-node-running                   | 3.2.1   | MIT              | development/optional build |
+| yaml                                  | 2.9.1   | ISC              | development/optional build |
+| zod                                   | 3.25.76 | MIT              | runtime                    |
+
+Regenerate after dependency changes from package-lock.json; `npm run audit:history` reports both direct and transitive metadata. `npm audit --audit-level=low` checks advisories independently of this licence inventory.
