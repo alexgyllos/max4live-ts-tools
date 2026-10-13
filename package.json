@@ -2,11 +2,11 @@
   "name": "max4live-ts-tools",
   "version": "0.1.0-rc.1",
   "private": true,
-  "description": "Safe offline tools for Max .maxpat JSON patchers",
+  "description": "TypeScript tools for working with Max patcher files",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
-    "node": "^22.12.0 || ^24.0.0"
+    "node": "^24.0.0"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,7 +26,8 @@
   "files": [
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
@@ -40,25 +41,21 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && vitest run",
-    "test:ci": "npm run build && vitest run",
     "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
-    "docs": "typedoc --options typedoc.json",
     "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
-    "release:check": "node scripts/release-rehearsal.mjs",
-    "audit:history": "node scripts/audit-history.mjs"
+    "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check"
   },
   "dependencies": {
-    "zod": "3.25.76"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@types/node": "22.20.4",
-    "typescript": "5.9.3",
-    "vitest": "5.0.4",
-    "prettier": "3.9.10",
-    "typedoc": "0.28.20"
+    "@types/node": "24.19.2",
+    "oxfmt": "0.73.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
   }
 }

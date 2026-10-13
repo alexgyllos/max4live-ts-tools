@@ -1,43 +1,35 @@
 # max4live-ts-tools
 
-A Node.js TypeScript library and `maxpat` CLI for reading, validating, safely editing, generating, formatting and structurally comparing Max `.maxpat` JSON patchers. Work with files or in-memory graphs, including embedded subpatchers. Preserve unknown JSON metadata and edit through immutable revisions.
+TypeScript tools for working with Max patcher files: parse, validate, edit,
+generate, format and compare `.maxpat` JSON, including embedded subpatchers.
+Requires Node 24. ESM only.
 
-**Release candidate:** `0.1.0-rc.1`. Source is public; npm publication remains disabled (`private: true`) and licensing is UNLICENSED pending separate MIT approval. There is no published npm package yet. Node 22.12+ within major 22 and Node 24 are the supported CI targets. Max compatibility remains pending the [verification procedure](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/max-compatibility.md). Fixtures are synthetic, not certified Max exports.
+## Installation
 
-This is offline JSON tooling. Binary `.amxd` device files, DSP execution, LOM control, device installation and Ableton automation are outside the initial release. Export/edit `.maxpat` through Max itself; renaming an `.amxd` does not convert it. This project is not affiliated with Ableton or Cycling '74.
-
-## Development and installation
+The package is not yet published to npm. Build a tarball from this repository:
 
 ```sh
+git clone https://github.com/alexgyllos/max4live-ts-tools.git
+cd max4live-ts-tools
 npm ci
-npm run build
-npm run typecheck
-npm run lint
-npm run format:check
-npm test
-npm run pack:check
-npm run docs
-npm run examples
-npm run release:check
+npm pack
 ```
 
-For a private local consumer, run `npm pack` then install the generated tarball in your application (`npm install /path/to/max4live-ts-tools-0.1.0-rc.1.tgz`). After an approved public release, installation will use the npm name; the registry currently returns 404, which is neither a reservation nor an ownership claim.
+Install the resulting `max4live-ts-tools-0.1.0-rc.1.tgz` in your application with
+`npm install /path/to/max4live-ts-tools-0.1.0-rc.1.tgz`.
 
-## Quick start
+## Usage
 
 ```ts
 import {
   PatchBuilder,
-  writeFile,
-  readFile,
   PatchEditor,
+  readFile,
+  writeFile,
   diffPatches,
 } from "max4live-ts-tools";
 
-const patch = new PatchBuilder({
-  rect: [0, 0, 600, 400],
-  metadata: { fileversion: 1 },
-})
+const patch = new PatchBuilder()
   .object({
     id: "source",
     text: "loadbang",
@@ -54,55 +46,87 @@ const patch = new PatchBuilder({
   })
   .connect(["source", 0], ["sink", 0])
   .toNormalized();
+
 writeFile("example.maxpat", patch);
 const original = readFile("example.maxpat");
-const changed = PatchEditor.fromNormalized(original).updateBox("sink", {
+const edited = PatchEditor.fromNormalized(original).updateBox("sink", {
   passthrough: { text: "print revised" },
 });
-console.log(diffPatches(original, changed.toNormalized()));
+writeFile("edited.maxpat", edited.toNormalized());
+console.log(diffPatches(original, edited.toNormalized()));
 ```
 
-Use `max4live-ts-tools/core` for filesystem-free parsing/editing:
+`max4live-ts-tools/core` provides filesystem-free parsing, serialisation,
+validation, editing, builders, traversal and diffing. The root entrypoint adds
+`readFile`, `writeFile`, `PatchEditor.fromFile()` and editor `write()`.
+Editor revisions are immutable; returned snapshots and query results are copies.
 
-```ts
-import {
-  parsePatch,
-  serializePatch,
-  PatchEditor,
-  queryPatch,
-} from "max4live-ts-tools/core";
-const patch = parsePatch('{"patcher":{"boxes":[]}}');
-const editor = PatchEditor.fromNormalized(patch);
-console.log(
-  serializePatch(editor.toNormalized()),
-  queryPatch(patch, { text: "print", match: "partial" }),
-);
-```
+Use `parsePatch` for JSON text and `parsePatchObject` for JSON objects.
+Reads check structure; pass `{ validateGraph: true }` to also reject graph errors.
+`validateGraph` returns diagnostics and accepts rule overrides and custom rules.
+Writes and serialisation reject graph errors by default; `{ skipValidation: true }`
+skips graph rules only. Duplicate IDs and non-JSON data are always rejected.
 
-The root entrypoint adds `readFile`, `writeFile`, `PatchEditor.fromFile` and editor `write`. Builder/nested editors are core editors; pass their snapshots to `writeFile`. The package is ESM-only and ships JavaScript, declarations and a shebang executable. Port counts are explicit because Max objects may have dynamic behavior that cannot be inferred from text offline.
+Object port counts must be explicit. Removing an object removes its connections;
+reducing a connected port count throws. Embedded paths are arrays of containing
+box IDs: `walkPatch`, `queryPatch`, `atPath` and `editAtPath` work within those scopes.
+External bpatcher files are preserved but not loaded.
 
 ## CLI
 
+After installation, use `npx --no-install maxpat` in your application:
+
 ```sh
-maxpat validate --json example.maxpat
-maxpat check example.maxpat
-maxpat format example.maxpat           # no write; exit 1 if formatting differs
-maxpat format --write example.maxpat
-maxpat diff --json before.maxpat after.maxpat
-maxpat --help
-maxpat --version
+npx --no-install maxpat check --json example.maxpat
+npx --no-install maxpat format example.maxpat
+npx --no-install maxpat format --write example.maxpat
+npx --no-install maxpat diff --json example.maxpat edited.maxpat
+npx --no-install maxpat --help
 ```
 
-Flags work in any order. Quote paths with spaces; use `--` for paths beginning with `-`. Validate/check are aliases. Exit 0 means success/equal, 1 means invalid graph/different/unformatted, 2 means invocation/parse/structural/IO error. JSON includes `schemaVersion: 1`; successful operation results go to stdout and exceptions to stderr. [Complete CLI, diff and schema reference](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/cli.md).
+`validate` and `check` are aliases. Format checks without writing unless `--write`
+is supplied. Quote paths with spaces; use `--` for names beginning with `-`.
+Exit codes: **0** success/equal/formatted, **1** invalid graph/different/unformatted,
+**2** invocation, parsing, structure or I/O error.
 
-## Safety and limitations
+`--json` emits one document with `schemaVersion: 1`. Validation returns
+`command`, `ok`, `diagnostics`; format returns `command`, `ok`, `changed`, `written`;
+diff returns `command`, `mode: "structural"`, `equal`, `changes`.
+Operation results go to stdout; exceptions go to stderr with `ok: false` and
+`error` details. Each change has `kind`, `path` and optional `before`/`after` values.
+Absent fields mean additions/removals; null is a present value.
 
-Back up valuable patches before editing. Supported valid data round-trips deeply, including root/patcher/wrapper/box/line fields, absent lines, saved attributes and nested graphs. Canonical output changes whitespace and object key order; array order and numeric negative zero are preserved. Duplicate IDs and non-JSON values are rejected. Structural checks always run, even with `skipValidation`; that option skips only graph rules. Reads validate structure by default and can opt into graph rejection; writes/serialization reject graph errors by default.
+Diffs compare IDs, metadata, field presence, nested graphs and array order;
+whitespace and object key order are ignored. Connections match content first,
+then endpoints, retaining duplicates and reporting metadata edits separately.
+Rewiring removes/adds a connection; relative reorderings appear at `lineOrder`
+with original connection indices. Added/updated paths use new indices and removed
+paths use original indices. Paths describe changes; they are not JSON Patch operations.
 
-Writes create an exclusive unpredictable temp file beside the destination, close it and rename it atomically. Pre-rename failures preserve the original. New files use mode 0600; existing POSIX rwx permission bits are preserved (special bits are dropped). Symlink/nonregular destinations are rejected on inspection; rename never follows a destination symlink. Trusted, stable parent directories are required. Concurrent writes are last-successful-rename wins. No lock, compare-and-swap, ACL/xattr preservation or crash/power-loss durability guarantee is made. OS cleanup failures are surfaced with their causes. See [bounded IO guarantees](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/baseline.md).
+## File behaviour and limitations
 
-Embedded scope paths are arrays of containing box IDs. `walkPatch`, `queryPatch`, `atPath` and `editAtPath` operate on inline patchers; external bpatcher references are never loaded. No external dependency resolution, object existence check or Max DSP/runtime validity is claimed. Resource limits and mutation/error contracts: [API guide](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/api-contract.md). Generate HTML API reference using `npm run docs` (opens `docs/api/index.html`). Runnable examples: [create](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/create.ts), [advanced/nested/rules/diff](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/advanced.ts).
+Unknown JSON fields, array order and negative zero are preserved. Serialisation
+normalises whitespace and object key order. Inputs are bounded: 40 MiB files,
+20 Mi UTF-16 code units of text, 128 JSON levels, 24 nested patcher levels,
+100,000 boxes and 200,000 connections per scope.
 
-## Contributing and release status
+Writes use an exclusive temporary file beside the destination, close it, then
+rename it over the destination. Failures before rename preserve the original;
+concurrent replacements use the last successful rename. Symlink destinations are
+rejected; use stable parent directories. New files use mode 0600; existing POSIX
+permission bits are preserved. Replacement does not provide power-loss durability.
+On Windows, transient rename failures retry up to eight attempts with 560 ms total
+scheduled waiting. These APIs are synchronous; use a worker for latency-sensitive
+Electron/UI calls.
 
-See [CONTRIBUTING](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md), [SECURITY](https://github.com/alexgyllos/max4live-ts-tools/blob/main/SECURITY.md), [community conduct](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CODE_OF_CONDUCT.md), [CHANGELOG](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CHANGELOG.md), [fixture provenance](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/fixtures.md) and [release readiness](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/release.md). Use GitHub issues for reproducible defects/ideas; no SLA or telemetry. Private security reporting instructions are in SECURITY.md. Owner review is required before merge, legal licensing, visibility change or publication.
+The toolkit handles `.maxpat` JSON, not binary `.amxd` devices or Max execution.
+Max save/reopen compatibility remains unverified.
+This project is not affiliated with Ableton or Cycling '74.
+
+## Development
+
+Use Node 24 and `npm ci`. Run `npm run verify` for formatting, typechecks, tests,
+examples and packed-consumer checks; `npm run format` applies Oxfmt formatting.
+See [CONTRIBUTING](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md)
+and the runnable [examples](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples).
+Licensed under [MIT](LICENSE).

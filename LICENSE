@@ -1,13 +1,6 @@
-# Proposed licence — owner approval required
-
-**Draft only. This document does not grant a licence.** The package remains `UNLICENSED` and private. Repository possession/commit author names do not establish copyright ownership or authority to relicense. The owner must verify redistribution rights for the source/fixtures, approve the copyright holder/name and year, and explicitly approve MIT before a LICENSE file or MIT package metadata is committed.
-
-Proposed text for an approved LICENSE (replace attribution with the verified rights holder):
-
-```text
 MIT License
 
-Copyright (c) 2026 [verified copyright holder]
+Copyright (c) 2026 Alexander Gyllos
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-```
-
-Dependencies (Zod and development tools) have their own licences; `npm run audit:history` prints installed direct dependency licence metadata. They are installed as dependencies, not vendored into this source. Legal sign-off must review the complete transitive inventory and final tarball, not infer ownership from package metadata alone.
