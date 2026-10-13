@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
+// TypeDoc/export inventory use the compatible JS API; consumer compilation below uses native TS 7.
 import ts from "typescript";
 const npmPath = process.env.npm_execpath;
 if (!npmPath) throw new Error("Run using npm run pack:check");
@@ -119,7 +120,7 @@ try {
     spawnSync(
       process.execPath,
       [
-        resolve("node_modules/typescript/bin/tsc"),
+        resolve("node_modules/typescript-native/bin/tsc"),
         "--noEmit",
         "--strict",
         "--target",

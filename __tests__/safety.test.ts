@@ -29,10 +29,15 @@ vi.mock("node:crypto", async (original) => {
   return { ...actual, randomUUID: vi.fn(actual.randomUUID) };
 });
 let dir: string;
+const platformDescriptor = Object.getOwnPropertyDescriptor(
+  process,
+  "platform",
+)!;
 beforeEach(() => {
   dir = fs.mkdtempSync(join(tmpdir(), "maxpat-safety-"));
 });
 afterEach(() => {
+  Object.defineProperty(process, "platform", platformDescriptor);
   vi.restoreAllMocks();
   vi.mocked(fs.openSync).mockReset();
   vi.mocked(fs.openSync).mockImplementation(fsActual.openSync);
@@ -211,7 +216,7 @@ describe("atomic writer", () => {
           throw error;
         });
       if (stage === "rename")
-        vi.mocked(fs.renameSync).mockImplementationOnce(() => {
+        vi.mocked(fs.renameSync).mockImplementation(() => {
           throw error;
         });
       if (stage === "permission")
@@ -254,6 +259,69 @@ describe("atomic writer", () => {
     writeFile(join(dir, "a.maxpat"), empty());
     expect(fs.readFileSync(collision, "utf8")).toBe("owned by someone else");
   });
+  it.each(["EPERM", "EACCES", "EBUSY"])(
+    "retries Windows rename %s without changing the original before success",
+    (code) => {
+      Object.defineProperty(process, "platform", { value: "win32" });
+      vi.spyOn(Atomics, "wait").mockReturnValue("timed-out");
+      const target = join(dir, "locked.maxpat");
+      fs.writeFileSync(target, "original");
+      const transient = Object.assign(new Error("sharing violation"), { code });
+      const fail = () => {
+        expect(fs.readFileSync(target, "utf8")).toBe("original");
+        throw transient;
+      };
+      vi.mocked(fs.renameSync)
+        .mockImplementationOnce(fail)
+        .mockImplementationOnce(fail);
+      writeFile(target, empty());
+      expect(fs.renameSync).toHaveBeenCalledTimes(3);
+      expect(toPatchObject(readFile(target))).toEqual({
+        patcher: { boxes: [] },
+      });
+      expect(fs.readdirSync(dir)).toEqual(["locked.maxpat"]);
+    },
+  );
+  it("bounds persistent Windows rename denial and preserves the cause and original", () => {
+    Object.defineProperty(process, "platform", { value: "win32" });
+    vi.spyOn(Atomics, "wait").mockReturnValue("timed-out");
+    const target = join(dir, "locked.maxpat");
+    fs.writeFileSync(target, "original");
+    const denied = Object.assign(new Error("denied"), { code: "EPERM" });
+    vi.mocked(fs.renameSync).mockImplementation(() => {
+      throw denied;
+    });
+    try {
+      writeFile(target, empty());
+      throw new Error("expected failure");
+    } catch (error) {
+      expect(error).toBeInstanceOf(MaxpatWriteError);
+      expect((error as Error).cause).toBe(denied);
+    }
+    expect(fs.renameSync).toHaveBeenCalledTimes(8);
+    expect(fs.readFileSync(target, "utf8")).toBe("original");
+    expect(fs.readdirSync(dir)).toEqual(["locked.maxpat"]);
+  });
+  it.each([
+    ["linux", "EPERM"],
+    ["win32", "ENOENT"],
+  ])(
+    "does not retry an unrelated rename failure on %s with %s",
+    (platform, code) => {
+      Object.defineProperty(process, "platform", { value: platform });
+      vi.spyOn(fs, "fchmodSync").mockImplementation(() => {});
+      const target = join(dir, "failure.maxpat");
+      fs.writeFileSync(target, "original");
+      const failure = Object.assign(new Error("rename failure"), { code });
+      vi.mocked(fs.renameSync).mockImplementationOnce(() => {
+        throw failure;
+      });
+      expect(() => writeFile(target, empty())).toThrow(MaxpatWriteError);
+      expect(fs.renameSync).toHaveBeenCalledTimes(1);
+      expect(fs.readFileSync(target, "utf8")).toBe("original");
+      expect(fs.readdirSync(dir)).toEqual(["failure.maxpat"]);
+    },
+  );
   it("rejects symlink destinations and missing directories", () => {
     const target = join(dir, "a.maxpat");
     fs.writeFileSync(target, "original");

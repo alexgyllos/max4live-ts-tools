@@ -38,27 +38,28 @@
   "homepage": "https://github.com/alexgyllos/max4live-ts-tools#readme",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node node_modules/typescript-native/bin/tsc --noEmit",
     "test": "npm run build && vitest run",
     "test:ci": "npm run build && vitest run",
-    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "node node_modules/typescript-native/bin/tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
     "docs": "typedoc --options typedoc.json",
-    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
+    "examples": "node node_modules/typescript-native/bin/tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
     "release:check": "node scripts/release-rehearsal.mjs",
     "audit:history": "node scripts/audit-history.mjs"
   },
   "dependencies": {
-    "zod": "3.25.76"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@types/node": "22.20.4",
-    "typescript": "5.9.3",
+    "@types/node": "26.6.5",
+    "typescript": "6.0.3",
     "vitest": "5.0.4",
-    "prettier": "3.9.10",
-    "typedoc": "0.28.20"
+    "typedoc": "0.28.20",
+    "oxfmt": "0.73.0",
+    "typescript-native": "npm:typescript@7.0.2"
   }
 }

@@ -1,6 +1,8 @@
 # Dependency licence inventory
 
-Snapshot from the checked-in lockfile. npm metadata is not a legal determination; owner review should inspect corresponding package LICENSE files before distribution. Dependencies are installed separately, not bundled/vendor-copied. Zod is the only direct runtime dependency. TypeScript and the remaining tooling are development dependencies excluded by the package allowlist. Initial source/fixture ownership is a separate unresolved gate.
+Snapshot from the checked-in lockfile. npm metadata is not a legal determination; owner review should inspect corresponding package LICENSE files before package publication. Dependencies are installed separately, not bundled/vendor-copied. Zod is the only direct runtime dependency. Development tools are excluded by the package allowlist. The owner has authorized public source visibility; MIT licensing remains a separate approval.
+
+TypeScript 7.0.2 is the native build/check compiler, installed as `typescript-native`. TypeScript 6.0.3 supplies only the compatible JavaScript API required by TypeDoc 0.28.20 and export inventory. Neither documentation generation nor export inventory is a fallback build.
 
 | Package/path                          | Version | Declared licence | Scope                      |
 | ------------------------------------- | ------- | ---------------- | -------------------------- |
@@ -9,6 +11,25 @@ Snapshot from the checked-in lockfile. npm metadata is not a legal determination
 | @jridgewell/sourcemap-codec           | 1.6.0   | MIT              | development/optional build |
 | @jridgewell/trace-mapping             | 0.3.31  | MIT              | development/optional build |
 | @oxc-project/types                    | 0.153.0 | MIT              | development/optional build |
+| @oxfmt/binding-android-arm-eabi       | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-android-arm64          | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-darwin-arm64           | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-darwin-x64             | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-freebsd-x64            | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-arm-gnueabihf    | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-arm-musleabihf   | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-arm64-gnu        | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-arm64-musl       | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-ppc64-gnu        | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-riscv64-gnu      | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-riscv64-musl     | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-s390x-gnu        | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-x64-gnu          | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-linux-x64-musl         | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-openharmony-arm64      | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-win32-arm64-msvc       | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-win32-ia32-msvc        | 0.73.0  | MIT              | development/optional build |
+| @oxfmt/binding-win32-x64-msvc         | 0.73.0  | MIT              | development/optional build |
 | @rolldown/binding-android-arm-eabi    | 1.2.13  | MIT              | development/optional build |
 | @rolldown/binding-android-arm64       | 1.2.13  | MIT              | development/optional build |
 | @rolldown/binding-darwin-arm64        | 1.2.13  | MIT              | development/optional build |
@@ -34,8 +55,28 @@ Snapshot from the checked-in lockfile. npm metadata is not a legal determination
 | @types/deep-eql                       | 4.0.2   | MIT              | development/optional build |
 | @types/estree                         | 1.0.9   | MIT              | development/optional build |
 | @types/hast                           | 3.0.5   | MIT              | development/optional build |
-| @types/node                           | 22.20.4 | MIT              | development/optional build |
+| @types/node                           | 26.6.5  | MIT              | development/optional build |
 | @types/unist                          | 3.0.3   | MIT              | development/optional build |
+| @typescript/typescript-aix-ppc64      | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-darwin-arm64   | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-darwin-x64     | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-freebsd-arm64  | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-freebsd-x64    | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-arm      | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-arm64    | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-loong64  | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-mips64el | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-ppc64    | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-riscv64  | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-s390x    | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-linux-x64      | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-netbsd-arm64   | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-netbsd-x64     | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-openbsd-arm64  | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-openbsd-x64    | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-sunos-x64      | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-win32-arm64    | 7.0.2   | Apache-2.0       | development/optional build |
+| @typescript/typescript-win32-x64      | 7.0.2   | Apache-2.0       | development/optional build |
 | @vitest/mocker                        | 5.0.4   | MIT              | development/optional build |
 | @vitest/spy                           | 5.0.4   | MIT              | development/optional build |
 | argparse                              | 2.0.1   | Python-2.0       | development/optional build |
@@ -70,10 +111,10 @@ Snapshot from the checked-in lockfile. npm metadata is not a legal determination
 | minimatch                             | 10.2.6  | BlueOak-1.0.0    | development/optional build |
 | nanoid                                | 3.3.20  | MIT              | development/optional build |
 | obug                                  | 3.0.0   | MIT              | development/optional build |
+| oxfmt                                 | 0.73.0  | MIT              | development/optional build |
 | picocolors                            | 1.1.1   | ISC              | development/optional build |
 | picomatch                             | 4.0.7   | MIT              | development/optional build |
 | postcss                               | 8.5.30  | MIT              | development/optional build |
-| prettier                              | 3.9.10  | MIT              | development/optional build |
 | punycode.js                           | 2.3.1   | MIT              | development/optional build |
 | rolldown                              | 1.2.13  | MIT              | development/optional build |
 | source-map-js                         | 1.2.2   | BSD-3-Clause     | development/optional build |
@@ -81,14 +122,16 @@ Snapshot from the checked-in lockfile. npm metadata is not a legal determination
 | tinybench                             | 6.2.2   | MIT              | development/optional build |
 | tinyexec                              | 1.3.1   | MIT              | development/optional build |
 | tinyglobby                            | 0.2.17  | MIT              | development/optional build |
+| tinypool                              | 2.2.0   | MIT              | development/optional build |
 | typedoc                               | 0.28.20 | Apache-2.0       | development/optional build |
-| typescript                            | 5.9.3   | Apache-2.0       | development/optional build |
+| typescript                            | 6.0.3   | Apache-2.0       | development/optional build |
+| typescript-native                     | 7.0.2   | Apache-2.0       | development/optional build |
 | uc.micro                              | 2.1.0   | MIT              | development/optional build |
-| undici-types                          | 6.21.0  | MIT              | development/optional build |
+| undici-types                          | 8.9.0   | MIT              | development/optional build |
 | vite                                  | 8.3.4   | MIT              | development/optional build |
 | vitest                                | 5.0.4   | MIT              | development/optional build |
 | why-is-node-running                   | 3.2.1   | MIT              | development/optional build |
 | yaml                                  | 2.9.1   | ISC              | development/optional build |
-| zod                                   | 3.25.76 | MIT              | runtime                    |
+| zod                                   | 4.6.7   | MIT              | runtime                    |
 
 Regenerate after dependency changes from package-lock.json; `npm run audit:history` reports both direct and transitive metadata. `npm audit --audit-level=low` checks advisories independently of this licence inventory.

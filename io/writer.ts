@@ -48,7 +48,29 @@ export function writeFile(
     if (process.platform !== "win32") fs.fchmodSync(fd, mode);
     fs.closeSync(fd);
     fd = undefined;
-    fs.renameSync(temp, target);
+    // Windows can briefly deny replacement while another process releases its
+    // file handle. Retry only the failed rename, never unlink the destination.
+    for (let attempt = 0; ; attempt++) {
+      try {
+        fs.renameSync(temp, target);
+        break;
+      } catch (error) {
+        if (
+          process.platform !== "win32" ||
+          !["EPERM", "EACCES", "EBUSY"].includes(
+            (error as NodeJS.ErrnoException).code ?? "",
+          ) ||
+          attempt === 7
+        )
+          throw error;
+        Atomics.wait(
+          new Int32Array(new SharedArrayBuffer(4)),
+          0,
+          0,
+          20 * (attempt + 1),
+        );
+      }
+    }
     temp = undefined;
   } catch (cause) {
     if (fd !== undefined) {
