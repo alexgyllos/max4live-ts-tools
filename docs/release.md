@@ -15,7 +15,8 @@ The CI matrix uses pinned actions, no secrets and contents:read. It checks Ubunt
 - [ ] Complete genuine export provenance and Max open/save/reopen qualification using docs/max-compatibility.md.
 - [ ] Review full reachable history and the final package for secrets, unintended references and redistribution rights.
 - [ ] Verify all six hosted jobs. Require the `verify / <os> / Node <22|24>` contexts, an independent approving review, stale-review dismissal and resolved conversations. Disable branch force pushes/deletion and apply protections to administrators where supported.
-- [ ] Approve repository visibility and public reporting integrations; verify support/security channels.
+- [x] Owner approved public source visibility for the current candidate.
+- [ ] Separately approve public reporting integrations; verify support/security channels.
 - [ ] Verify npm account/scope authority, name and 2FA policy. A registry lookup is not a package-name reservation. Bootstrap and trusted publisher configuration require owner action.
 - [ ] Protect `npm-release` with owner review and prevent self-approval where supported. Verify the actual approval boundary before activating the template.
 - [ ] Register the exact GitHub repository/workflow/environment as an npm trusted publisher with stage-only permission, close to the approved launch. Public provenance requires a matching public repository.

@@ -1,6 +1,6 @@
 # Contributing
 
-Until the owner approves licensing and visibility, this repository is a private release candidate and grants no redistribution rights. Do not submit/copy third-party patches without documented rights.
+This repository is a public release candidate. Licensing remains UNLICENSED pending separate owner MIT approval; public visibility does not grant an open-source licence. Do not submit/copy third-party patches without documented rights.
 
 Use Node 22.12+ or 24, `npm ci`, and a focused branch/worktree. Keep code ESM, dependency-light, portable, immutable at API boundaries and lossless for supported JSON. Run build/typecheck/lint/format:check/test/pack:check/docs/examples/release:check. `npm run format` applies formatting. `lint` uses TypeScript's strict/no-unused checks; formatting is enforced separately. Add behavior regressions for safety/correctness fixes; packed CLI cases belong in scripts/pack-check.mjs. Do not use private paths, secret env vars, Max installations or network services as test prerequisites.
 

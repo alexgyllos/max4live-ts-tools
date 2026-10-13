@@ -1,6 +1,6 @@
 # Proposed licence — owner approval required
 
-**Draft only. This document does not grant a licence.** The package remains `UNLICENSED` and private. Repository possession/commit author names do not establish copyright ownership or authority to relicense. The owner must verify redistribution rights for the source/fixtures, approve the copyright holder/name and year, and explicitly approve MIT before a LICENSE file or MIT package metadata is committed.
+**Draft only. This document does not grant a licence.** Source is public; the package remains `UNLICENSED` and npm publication is disabled (`private: true`). Repository possession/commit author names do not establish copyright ownership or authority to relicense. The owner must verify redistribution rights for the source/fixtures, approve the copyright holder/name and year, and explicitly approve MIT before a LICENSE file or MIT package metadata is committed.
 
 Proposed text for an approved LICENSE (replace attribution with the verified rights holder):
 

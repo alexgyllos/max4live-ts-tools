@@ -11,4 +11,4 @@
 - Installed README uses repository documentation links; supported Node versions are limited to majors 22 and 24.
 - ESM builds/types/exports, packed consumer smoke, cross-platform CI, API docs/examples and release rehearsal.
 
-No npm or GitHub release has been published. Licensing, redistribution rights, actual Max compatibility, account/protection configuration and publicity remain owner gates.
+No npm or GitHub release has been published. The owner has approved public source visibility. MIT licensing, actual Max compatibility, release account/protection configuration and package publication remain separate gates.
