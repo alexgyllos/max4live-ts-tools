@@ -2,7 +2,6 @@ node_modules/
 dist/
 *.tgz
 coverage/
-docs/api/
 .DS_Store
 .env*
 .examples/

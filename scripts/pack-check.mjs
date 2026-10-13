@@ -9,8 +9,6 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
-// TypeDoc/export inventory use the compatible JS API; consumer compilation below uses native TS 7.
-import ts from "typescript";
 const npmPath = process.env.npm_execpath;
 if (!npmPath) throw new Error("Run using npm run pack:check");
 const temp = mkdtempSync(join(tmpdir(), "maxpat-consumer-"));
@@ -89,40 +87,27 @@ try {
       encoding: "utf8",
     }),
   );
-  // Import every public symbol from both entrypoints and check declaration internals too.
+  // Namespace imports load both complete public declaration graphs. The native
+  // compiler checks declaration internals without needing the legacy JS API.
   const declarations = [
     join(lib, "dist/index.d.ts"),
     join(lib, "dist/core.d.ts"),
   ];
-  const program = ts.createProgram(declarations, {
-    target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.NodeNext,
-    moduleResolution: ts.ModuleResolutionKind.NodeNext,
-  });
-  const checker = program.getTypeChecker();
-  const imports = declarations
-    .map((file, i) => {
-      const source = program.getSourceFile(file);
-      const symbol = checker.getSymbolAtLocation(source);
-      const names = checker
-        .getExportsOfModule(symbol)
-        .map((s) => s.name)
-        .sort();
-      return `import {${names.map((name) => `${name} as Entry${i}_${name}`).join(",")}} from 'max4live-ts-tools${i ? "/core" : ""}';`;
-    })
-    .join("\n");
+  const imports = `import * as Root from 'max4live-ts-tools';\nimport * as Core from 'max4live-ts-tools/core';\n`;
   writeFileSync(
     join(consumer, "types.ts"),
     imports +
-      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());console.log(d);`,
+      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());console.log(Root,Core,d);`,
   );
-  requireSuccess(
+  const compileTypes = () =>
     spawnSync(
       process.execPath,
       [
-        resolve("node_modules/typescript-native/bin/tsc"),
+        resolve("node_modules/typescript/bin/tsc"),
         "--noEmit",
         "--strict",
+        "--skipLibCheck",
+        "false",
         "--target",
         "ES2022",
         "--module",
@@ -132,8 +117,24 @@ try {
         "types.ts",
       ],
       { cwd: consumer, encoding: "utf8" },
-    ),
-  );
+    );
+  requireSuccess(compileTypes());
+  // Negative controls prove that even an unused type-only export in either
+  // entrypoint is checked; a compiler that skips declarations must fail here.
+  for (const declaration of declarations) {
+    const original = readFileSync(declaration, "utf8");
+    try {
+      writeFileSync(
+        declaration,
+        original + "\nexport type __PackCheckProbe = __PackCheckMissing;\n",
+      );
+      const result = compileTypes();
+      assert.notEqual(result.status, 0, "Damaged declaration was accepted");
+      assert.match(result.stdout + result.stderr, /TS2304.*__PackCheckMissing/);
+    } finally {
+      writeFileSync(declaration, original);
+    }
+  }
   const manifest = JSON.parse(readFileSync(join(lib, "package.json"), "utf8"));
   const bin = join(lib, manifest.bin.maxpat);
   assert(readFileSync(bin, "utf8").startsWith("#!/usr/bin/env node"));

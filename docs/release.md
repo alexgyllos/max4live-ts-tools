@@ -4,7 +4,7 @@ Target stable version: **0.1.0**. Candidate: **0.1.0-rc.1**. Keep `private: true
 
 ## Rehearsal
 
-Run `npm ci` and `npm run release:check`. This runs lint/typecheck/format/tests/docs/examples, an actual packed external consumer and `npm pack --dry-run`, then prints release notes and a report. It creates no tag, release, publication or visibility change. It verifies package preparation, not OIDC authorization/provenance or Max runtime compatibility. Add changes under CHANGELOG Unreleased; the script extracts that section as release notes.
+Run `npm ci` and `npm run release:check`. This runs lint/typecheck/format/tests/examples, an actual packed external consumer and `npm pack --dry-run`, then prints release notes and a report. It creates no tag, release, publication or visibility change. It verifies package preparation, not OIDC authorization/provenance or Max runtime compatibility. Add changes under CHANGELOG Unreleased; the script extracts that section as release notes.
 
 The CI matrix uses pinned actions, no secrets and contents:read. It checks Ubuntu/macOS/Windows on Node 24, including packed command execution and concurrent writers. Require green results at the exact approved head; YAML alone is not qualification. Pull requests run one three-job matrix; branch pushes do not duplicate it. Main is verified again after integration.
 

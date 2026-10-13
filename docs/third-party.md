@@ -2,11 +2,10 @@
 
 Snapshot from the checked-in lockfile. npm metadata is not a legal determination; owner review should inspect corresponding package LICENSE files before package publication. Dependencies are installed separately, not bundled/vendor-copied. Zod is the only direct runtime dependency. Development tools are excluded by the package allowlist. The owner has authorized public source visibility; MIT licensing remains a separate approval.
 
-TypeScript 7.0.2 is the native build/check compiler, installed as `typescript-native`. TypeScript 6.0.3 supplies only the compatible JavaScript API required by TypeDoc 0.28.20 and export inventory. Neither documentation generation nor export inventory is a fallback build.
+TypeScript 7.0.2 is the native build/check compiler. Packed-consumer declaration validation also uses its CLI; no legacy JavaScript compiler API or documentation generator is required.
 
 | Package/path                          | Version | Declared licence | Scope                      |
 | ------------------------------------- | ------- | ---------------- | -------------------------- |
-| @gerrit0/mini-shiki                   | 3.23.0  | MIT              | development/optional build |
 | @jridgewell/resolve-uri               | 3.1.2   | MIT              | development/optional build |
 | @jridgewell/sourcemap-codec           | 1.6.0   | MIT              | development/optional build |
 | @jridgewell/trace-mapping             | 0.3.31  | MIT              | development/optional build |
@@ -46,17 +45,10 @@ TypeScript 7.0.2 is the native build/check compiler, installed as `typescript-na
 | @rolldown/binding-win32-arm64-msvc    | 1.2.13  | MIT              | development/optional build |
 | @rolldown/binding-win32-x64-msvc      | 1.2.13  | MIT              | development/optional build |
 | @rolldown/pluginutils                 | 1.0.1   | MIT              | development/optional build |
-| @shikijs/engine-oniguruma             | 3.23.0  | MIT              | development/optional build |
-| @shikijs/langs                        | 3.23.0  | MIT              | development/optional build |
-| @shikijs/themes                       | 3.23.0  | MIT              | development/optional build |
-| @shikijs/types                        | 3.23.0  | MIT              | development/optional build |
-| @shikijs/vscode-textmate              | 10.0.2  | MIT              | development/optional build |
 | @types/chai                           | 5.2.3   | MIT              | development/optional build |
 | @types/deep-eql                       | 4.0.2   | MIT              | development/optional build |
 | @types/estree                         | 1.0.9   | MIT              | development/optional build |
-| @types/hast                           | 3.0.5   | MIT              | development/optional build |
 | @types/node                           | 26.6.5  | MIT              | development/optional build |
-| @types/unist                          | 3.0.3   | MIT              | development/optional build |
 | @typescript/typescript-aix-ppc64      | 7.0.2   | Apache-2.0       | development/optional build |
 | @typescript/typescript-darwin-arm64   | 7.0.2   | Apache-2.0       | development/optional build |
 | @typescript/typescript-darwin-x64     | 7.0.2   | Apache-2.0       | development/optional build |
@@ -79,13 +71,9 @@ TypeScript 7.0.2 is the native build/check compiler, installed as `typescript-na
 | @typescript/typescript-win32-x64      | 7.0.2   | Apache-2.0       | development/optional build |
 | @vitest/mocker                        | 5.0.4   | MIT              | development/optional build |
 | @vitest/spy                           | 5.0.4   | MIT              | development/optional build |
-| argparse                              | 2.0.1   | Python-2.0       | development/optional build |
 | assertion-error                       | 2.0.1   | MIT              | development/optional build |
-| balanced-match                        | 4.0.4   | MIT              | development/optional build |
-| brace-expansion                       | 5.0.12  | MIT              | development/optional build |
 | chai                                  | 6.3.0   | MIT              | development/optional build |
 | detect-libc                           | 2.1.2   | Apache-2.0       | development/optional build |
-| entities                              | 4.5.0   | BSD-2-Clause     | development/optional build |
 | es-module-lexer                       | 2.3.2   | MIT              | development/optional build |
 | estree-walker                         | 3.0.3   | MIT              | development/optional build |
 | expect-type                           | 1.4.0   | Apache-2.0       | development/optional build |
@@ -103,19 +91,13 @@ TypeScript 7.0.2 is the native build/check compiler, installed as `typescript-na
 | lightningcss-linux-x64-musl           | 1.33.0  | MPL-2.0          | development/optional build |
 | lightningcss-win32-arm64-msvc         | 1.33.0  | MPL-2.0          | development/optional build |
 | lightningcss-win32-x64-msvc           | 1.33.0  | MPL-2.0          | development/optional build |
-| linkify-it                            | 5.0.2   | MIT              | development/optional build |
-| lunr                                  | 2.3.9   | MIT              | development/optional build |
 | magic-string                          | 1.4.3   | MIT              | development/optional build |
-| markdown-it                           | 14.3.2  | MIT              | development/optional build |
-| mdurl                                 | 2.1.0   | MIT              | development/optional build |
-| minimatch                             | 10.2.6  | BlueOak-1.0.0    | development/optional build |
 | nanoid                                | 3.3.20  | MIT              | development/optional build |
 | obug                                  | 3.0.0   | MIT              | development/optional build |
 | oxfmt                                 | 0.73.0  | MIT              | development/optional build |
 | picocolors                            | 1.1.1   | ISC              | development/optional build |
 | picomatch                             | 4.0.7   | MIT              | development/optional build |
 | postcss                               | 8.5.30  | MIT              | development/optional build |
-| punycode.js                           | 2.3.1   | MIT              | development/optional build |
 | rolldown                              | 1.2.13  | MIT              | development/optional build |
 | source-map-js                         | 1.2.2   | BSD-3-Clause     | development/optional build |
 | std-env                               | 4.3.0   | MIT              | development/optional build |
@@ -123,15 +105,11 @@ TypeScript 7.0.2 is the native build/check compiler, installed as `typescript-na
 | tinyexec                              | 1.3.1   | MIT              | development/optional build |
 | tinyglobby                            | 0.2.17  | MIT              | development/optional build |
 | tinypool                              | 2.2.0   | MIT              | development/optional build |
-| typedoc                               | 0.28.20 | Apache-2.0       | development/optional build |
-| typescript                            | 6.0.3   | Apache-2.0       | development/optional build |
-| typescript-native                     | 7.0.2   | Apache-2.0       | development/optional build |
-| uc.micro                              | 2.1.0   | MIT              | development/optional build |
+| typescript                            | 7.0.2   | Apache-2.0       | development/optional build |
 | undici-types                          | 8.9.0   | MIT              | development/optional build |
 | vite                                  | 8.3.4   | MIT              | development/optional build |
 | vitest                                | 5.0.4   | MIT              | development/optional build |
 | why-is-node-running                   | 3.2.1   | MIT              | development/optional build |
-| yaml                                  | 2.9.1   | ISC              | development/optional build |
 | zod                                   | 4.6.7   | MIT              | runtime                    |
 
 Regenerate after dependency changes from package-lock.json; `npm run audit:history` reports both direct and transitive metadata. `npm audit --audit-level=low` checks advisories independently of this licence inventory.

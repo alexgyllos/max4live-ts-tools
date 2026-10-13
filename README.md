@@ -16,14 +16,13 @@ npm run lint
 npm run format:check
 npm test
 npm run pack:check
-npm run docs
 npm run examples
 npm run release:check
 ```
 
 For a private local consumer, run `npm pack` then install the generated tarball in your application (`npm install /path/to/max4live-ts-tools-0.1.0-rc.1.tgz`). After an approved public release, installation will use the npm name; the registry currently returns 404, which is neither a reservation nor an ownership claim.
 
-Development uses the TypeScript 7.0.2 native compiler (formerly `tsgo`, now exposed as `tsc`) and Oxfmt 0.73.0. `typescript-native` aliases the native compiler package; build, typecheck, lint, examples and packed declaration checks invoke it explicitly. TypeScript 6.0.3 is retained only for TypeDoc 0.28.20 and export inventory, which require its JavaScript compiler API. It does not compile the package.
+Development uses the TypeScript 7.0.2 native compiler (formerly `tsgo`, now exposed as `tsc`) and Oxfmt 0.73.0. Builds, typechecks, lint, examples and packed declaration checks all use native TypeScript 7. API usage is documented in the guides below; no documentation generator is required.
 
 ## Quick start
 
@@ -103,7 +102,7 @@ Back up valuable patches before editing. Supported valid data round-trips deeply
 
 Writes create an exclusive unpredictable temp file beside the destination, close it and rename it atomically. Pre-rename failures preserve the original. New files use mode 0600; existing POSIX rwx permission bits are preserved (special bits are dropped). Symlink/nonregular destinations are rejected on inspection; rename never follows a destination symlink. Trusted, stable parent directories are required. Concurrent writes are last-successful-rename wins. On Windows, replacement retries only transient EPERM/EACCES/EBUSY rename failures, up to eight attempts with 560 ms total deliberate backoff. The synchronous call may block during that bounded backoff; it never unlinks the destination. Persistent denial remains a write error with the original cause and temporary-file cleanup. No lock, compare-and-swap, ACL/xattr preservation or crash/power-loss durability guarantee is made. OS cleanup failures are surfaced with their causes. See [bounded IO guarantees](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/baseline.md).
 
-Embedded scope paths are arrays of containing box IDs. `walkPatch`, `queryPatch`, `atPath` and `editAtPath` operate on inline patchers; external bpatcher references are never loaded. No external dependency resolution, object existence check or Max DSP/runtime validity is claimed. Resource limits and mutation/error contracts: [API guide](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/api-contract.md). Generate HTML API reference using `npm run docs` (opens `docs/api/index.html`). Runnable examples: [create](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/create.ts), [advanced/nested/rules/diff](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/advanced.ts).
+Embedded scope paths are arrays of containing box IDs. `walkPatch`, `queryPatch`, `atPath` and `editAtPath` operate on inline patchers; external bpatcher references are never loaded. No external dependency resolution, object existence check or Max DSP/runtime validity is claimed. Resource limits and mutation/error contracts: [API guide](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/api-contract.md). Runnable examples: [create](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/create.ts), [advanced/nested/rules/diff](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/advanced.ts).
 
 ## Contributing and release status
 

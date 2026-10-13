@@ -12,7 +12,7 @@ This document covers the package itself. Release is pending owner approval and t
 | Diff/CLI      | ID-sensitive structural comparison, installed binary, deterministic JSON/exits                | Supported platform integration checks                                  |
 | Package       | ESM JavaScript, declarations, exports/bin, allowlisted archive, external consumer tests       | Approved package name/account and release metadata                     |
 | CI            | Read-only fork-safe checks for Ubuntu/macOS/Windows with Node 24                              | Green checks at the exact approved head                                |
-| Documentation | API generator, examples, contributor/security/conduct/templates                               | Approved fixture/licence provenance                                    |
+| Documentation | API guides, examples, contributor/security/conduct/templates                                  | Approved fixture/licence provenance                                    |
 | Release       | Candidate version/changelog, non-publishing rehearsal, inactive OIDC template                 | Protected publishing environment, trusted publisher and owner go/no-go |
 
 Run `npm run release:check` and `npm run audit:history` to obtain current results. Review the actual hosted checks separately. Passing JSON/unit/consumer tests does not establish Max runtime compatibility or rights to redistribute source and fixtures. Complete the Max procedure in docs/max-compatibility.md and the approval checklist in docs/release.md before package publication.

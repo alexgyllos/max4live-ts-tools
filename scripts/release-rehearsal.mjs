@@ -8,7 +8,6 @@ for (const script of [
   "typecheck",
   "format:check",
   "test:ci",
-  "docs",
   "examples",
   "pack:check",
 ]) {

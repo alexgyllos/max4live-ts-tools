@@ -6,7 +6,7 @@ const result = spawnSync(
   process.execPath,
   [
     fileURLToPath(
-      new URL("../node_modules/typescript-native/bin/tsc", import.meta.url),
+      new URL("../node_modules/typescript/bin/tsc", import.meta.url),
     ),
     "-p",
     "tsconfig.build.json",

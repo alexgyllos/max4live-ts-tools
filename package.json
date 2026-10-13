@@ -38,16 +38,15 @@
   "homepage": "https://github.com/alexgyllos/max4live-ts-tools#readme",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "typecheck": "node node_modules/typescript-native/bin/tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "npm run build && vitest run",
     "test:ci": "npm run build && vitest run",
-    "lint": "node node_modules/typescript-native/bin/tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
-    "docs": "typedoc --options typedoc.json",
-    "examples": "node node_modules/typescript-native/bin/tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
+    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
     "release:check": "node scripts/release-rehearsal.mjs",
     "audit:history": "node scripts/audit-history.mjs"
   },
@@ -56,10 +55,8 @@
   },
   "devDependencies": {
     "@types/node": "26.6.5",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vitest": "5.0.4",
-    "typedoc": "0.28.20",
-    "oxfmt": "0.73.0",
-    "typescript-native": "npm:typescript@7.0.2"
+    "oxfmt": "0.73.0"
   }
 }
