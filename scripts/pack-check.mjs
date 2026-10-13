@@ -19,6 +19,7 @@ function requireSuccess(result) {
   assert.equal(result.status, 0, result.stderr + result.stdout);
   return result.stdout;
 }
+let verificationError;
 try {
   const pack = JSON.parse(
     requireSuccess(
@@ -219,7 +220,7 @@ try {
     `import {parsePatchObject,writeFile} from 'max4live-ts-tools';const n=Number(process.argv[2]);for(let i=0;i<20;i++)writeFile('concurrent.maxpat',parsePatchObject({patcher:{boxes:[]},writer:n}));`,
   );
   const { spawn } = await import("node:child_process");
-  await Promise.all(
+  const writers = await Promise.allSettled(
     Array.from(
       { length: 4 },
       (_, i) =>
@@ -231,12 +232,17 @@ try {
           let err = "";
           child.stderr.on("data", (x) => (err += x));
           child.on("error", rej);
-          child.on("exit", (code) =>
+          child.on("close", (code) =>
             code === 0 ? res() : rej(new Error(err)),
           );
         }),
     ),
   );
+  const failures = writers
+    .filter((result) => result.status === "rejected")
+    .map((result) => result.reason);
+  if (failures.length)
+    throw new AggregateError(failures, "Concurrent packed writers failed");
   assert(
     Array.isArray(
       JSON.parse(readFileSync(join(consumer, "concurrent.maxpat"), "utf8"))
@@ -248,6 +254,23 @@ try {
   console.log(
     `Packed consumer verified: ${pack.filename}; imports/types, installed bin, ${checks.length} CLI cases, four concurrent writers`,
   );
+} catch (error) {
+  verificationError = error;
+  throw error;
 } finally {
-  rmSync(temp, { recursive: true, force: true });
+  try {
+    rmSync(temp, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
+  } catch (error) {
+    if (verificationError)
+      throw new AggregateError(
+        [verificationError, error],
+        "Packed verification and cleanup failed",
+      );
+    throw error;
+  }
 }
