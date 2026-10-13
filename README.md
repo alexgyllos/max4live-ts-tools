@@ -2,7 +2,7 @@
 
 A Node.js TypeScript library and `maxpat` CLI for reading, validating, safely editing, generating, formatting and structurally comparing Max `.maxpat` JSON patchers. Work with files or in-memory graphs, including embedded subpatchers. Preserve unknown JSON metadata and edit through immutable revisions.
 
-**Release candidate:** `0.1.0-rc.1`. Source is public; npm publication remains disabled (`private: true`) and licensing is UNLICENSED pending separate MIT approval. There is no published npm package yet. Node 22.12+ within major 22 and Node 24 are the supported CI targets. Max compatibility remains pending the [verification procedure](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/max-compatibility.md). Fixtures are synthetic, not certified Max exports.
+**Release candidate:** `0.1.0-rc.1`. Source is public; npm publication remains disabled (`private: true`) and licensing is UNLICENSED pending separate MIT approval. There is no published npm package yet. Node 24 is the supported runtime and CI target. Max compatibility remains pending the [verification procedure](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/max-compatibility.md). Fixtures are synthetic, not certified Max exports.
 
 This is offline JSON tooling. Binary `.amxd` device files, DSP execution, LOM control, device installation and Ableton automation are outside the initial release. Export/edit `.maxpat` through Max itself; renaming an `.amxd` does not convert it. This project is not affiliated with Ableton or Cycling '74.
 

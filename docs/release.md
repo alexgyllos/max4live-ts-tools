@@ -6,7 +6,7 @@ Target stable version: **0.1.0**. Candidate: **0.1.0-rc.1**. Keep `private: true
 
 Run `npm ci` and `npm run release:check`. This runs lint/typecheck/format/tests/docs/examples, an actual packed external consumer and `npm pack --dry-run`, then prints release notes and a report. It creates no tag, release, publication or visibility change. It verifies package preparation, not OIDC authorization/provenance or Max runtime compatibility. Add changes under CHANGELOG Unreleased; the script extracts that section as release notes.
 
-The CI matrix uses pinned actions, no secrets and contents:read. It checks Ubuntu/macOS/Windows on Node 22/24, including packed command execution and concurrent writers. Require green results at the exact approved head; YAML alone is not qualification.
+The CI matrix uses pinned actions, no secrets and contents:read. It checks Ubuntu/macOS/Windows on Node 24, including packed command execution and concurrent writers. Require green results at the exact approved head; YAML alone is not qualification. Pull requests run one three-job matrix; branch pushes do not duplicate it. Main is verified again after integration.
 
 ## Approval checklist
 
@@ -14,7 +14,7 @@ The CI matrix uses pinned actions, no secrets and contents:read. It checks Ubunt
 - [ ] Verify rights to source/fixtures, copyright attribution, proposed MIT terms and dependency notices. Authorize LICENSE and licence metadata separately.
 - [ ] Complete genuine export provenance and Max open/save/reopen qualification using docs/max-compatibility.md.
 - [ ] Review full reachable history and the final package for secrets, unintended references and redistribution rights.
-- [ ] Verify all six hosted jobs. Require the `verify / <os> / Node <22|24>` contexts, an independent approving review, stale-review dismissal and resolved conversations. Disable branch force pushes/deletion and apply protections to administrators where supported.
+- [ ] Verify all three hosted jobs. Require the `verify / <os> / Node 24` contexts, an independent approving review, stale-review dismissal and resolved conversations. Disable branch force pushes/deletion and apply protections to administrators where supported.
 - [x] Owner approved public source visibility for the current candidate.
 - [ ] Separately approve public reporting integrations; verify support/security channels.
 - [ ] Verify npm account/scope authority, name and 2FA policy. A registry lookup is not a package-name reservation. Bootstrap and trusted publisher configuration require owner action.

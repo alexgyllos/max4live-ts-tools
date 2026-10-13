@@ -11,7 +11,7 @@ This document covers the package itself. Release is pending owner approval and t
 | Builder       | Explicit ports, layout/text/varname/attributes, deterministic IDs                             | Manual Max open/save/reopen                                            |
 | Diff/CLI      | ID-sensitive structural comparison, installed binary, deterministic JSON/exits                | Supported platform integration checks                                  |
 | Package       | ESM JavaScript, declarations, exports/bin, allowlisted archive, external consumer tests       | Approved package name/account and release metadata                     |
-| CI            | Read-only fork-safe checks for Ubuntu/macOS/Windows with Node 22/24                           | Green checks at the exact approved head                                |
+| CI            | Read-only fork-safe checks for Ubuntu/macOS/Windows with Node 24                              | Green checks at the exact approved head                                |
 | Documentation | API generator, examples, contributor/security/conduct/templates                               | Approved fixture/licence provenance                                    |
 | Release       | Candidate version/changelog, non-publishing rehearsal, inactive OIDC template                 | Protected publishing environment, trusted publisher and owner go/no-go |
 

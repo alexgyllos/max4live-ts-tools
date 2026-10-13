@@ -8,7 +8,7 @@
 - In-memory pure core, nested traversal/query/editing, scoped validation and fluent builder conveniences.
 - Deterministic ID-sensitive structural diff and packaged maxpat CLI with consistent exit/JSON protocol.
 - Connection-aware diff diagnostics preserve duplicate multiplicity, metadata changes and relative order without reporting insertion shifts as edits.
-- Installed README uses repository documentation links; supported Node versions are limited to majors 22 and 24.
+- Installed README uses repository documentation links; supported Node versions are limited to major 24.
 - TypeScript 7 native builds/checks, Oxfmt formatting, Zod 4 and current development dependencies. TypeDoc/export inventory retain the compatible TypeScript 6 API.
 - ESM builds/types/exports, packed consumer smoke, cross-platform CI, API docs/examples and release rehearsal.
 
