@@ -10,7 +10,7 @@ import { BUILTIN_RULES } from "./rules.js";
 import { toPatchObject } from "../io/parse.js";
 import { normalize } from "../normalize/normalize.js";
 import { clone, assertJson } from "./json.js";
-/** Structural safety is mandatory; overrides apply only to graph diagnostics. Recurses embedded scopes. */
+/** Validates structure and embedded graphs; overrides apply to graph diagnostics. */
 export const validateGraph = (
   patch: NormalizedPatch,
   ruleConfig?: RuleConfig,

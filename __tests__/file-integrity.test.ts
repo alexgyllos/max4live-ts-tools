@@ -34,7 +34,7 @@ const platformDescriptor = Object.getOwnPropertyDescriptor(
   "platform",
 )!;
 beforeEach(() => {
-  dir = fs.mkdtempSync(join(tmpdir(), "maxpat-safety-"));
+  dir = fs.mkdtempSync(join(tmpdir(), "maxpat-integrity-"));
 });
 afterEach(() => {
   Object.defineProperty(process, "platform", platformDescriptor);
@@ -56,7 +56,7 @@ afterEach(() => {
 const fsActual = await vi.importActual<typeof fs>("node:fs");
 const cryptoActual = await vi.importActual<typeof crypto>("node:crypto");
 const empty = () => parsePatchObject({ patcher: { boxes: [] } });
-describe("lossless boundaries", () => {
+describe("parsing and serialisation", () => {
   it("preserves every field, wrapper and absence of lines", () => {
     const raw = JSON.parse(
       fs.readFileSync(

@@ -3,7 +3,7 @@ import type { RawMaxpat, RawPatcher } from "../schema/index.js";
 import { MaxpatStructuralError } from "../errors.js";
 import { parseStructural } from "../validate/structural.js";
 import { clone, assertJson } from "../validate/json.js";
-/** Safe raw output. Structural integrity and ownership are mandatory even with skipValidation. */
+/** Returns an owned JSON object; structural validation always applies. */
 export const denormalize = (patch: NormalizedPatch): RawMaxpat => {
   const fail = (message: string): never => {
     throw new MaxpatStructuralError(message, "<normalized>", [

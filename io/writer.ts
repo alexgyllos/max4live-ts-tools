@@ -5,7 +5,7 @@ import { MaxpatWriteError } from "../errors.js";
 import { serializePatch } from "./parse.js";
 import type { NormalizedPatch, WriteOptions } from "../types.js";
 export { serializePatch } from "./parse.js";
-/** Atomic same-directory replacement, no symlink following. Not crash-durable or a CAS. */
+/** Synchronous temporary-file replacement; Windows rename retries can wait 560 ms. */
 export function writeFile(
   filePath: string,
   patch: NormalizedPatch,
@@ -26,7 +26,7 @@ export function writeFile(
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
     }
-    // A collision is safe (wx); retry with a new unpredictable name.
+    // Exclusive creation leaves collisions intact; retry with a new name.
     for (let attempt = 0; attempt < 8; attempt++) {
       const candidate = path.join(
         path.dirname(target),

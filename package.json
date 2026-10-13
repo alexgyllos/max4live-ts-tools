@@ -2,9 +2,9 @@
   "name": "max4live-ts-tools",
   "version": "0.1.0-rc.1",
   "private": true,
-  "description": "Safe offline tools for Max .maxpat JSON patchers",
+  "description": "TypeScript tools for working with Max patcher files",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": "^24.0.0"
   },
@@ -26,7 +26,8 @@
   "files": [
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
@@ -40,23 +41,21 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && vitest run",
-    "test:ci": "npm run build && vitest run",
     "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
     "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js",
-    "release:check": "node scripts/release-rehearsal.mjs",
-    "audit:history": "node scripts/audit-history.mjs"
+    "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check"
   },
   "dependencies": {
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@types/node": "26.6.5",
+    "@types/node": "24.19.2",
+    "oxfmt": "0.73.0",
     "typescript": "7.0.2",
-    "vitest": "5.0.4",
-    "oxfmt": "0.73.0"
+    "vitest": "5.0.4"
   }
 }

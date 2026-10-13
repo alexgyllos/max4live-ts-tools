@@ -26,6 +26,7 @@ try {
     ),
   )[0];
   assert(pack.files.some((f) => f.path === "dist/index.d.ts"));
+  assert(pack.files.some((f) => f.path === "LICENSE"));
   assert(
     pack.files.every(
       (f) =>
@@ -136,6 +137,11 @@ try {
     }
   }
   const manifest = JSON.parse(readFileSync(join(lib, "package.json"), "utf8"));
+  assert.equal(manifest.license, "MIT");
+  assert.equal(
+    readFileSync(join(lib, "LICENSE"), "utf8"),
+    readFileSync("LICENSE", "utf8"),
+  );
   const bin = join(lib, manifest.bin.maxpat);
   assert(readFileSync(bin, "utf8").startsWith("#!/usr/bin/env node"));
   const cli = (args) =>
