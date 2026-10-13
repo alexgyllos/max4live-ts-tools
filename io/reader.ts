@@ -1,4 +1,4 @@
-import * as fs from "node:fs";
+import { readBytes } from "./read-bytes.js";
 import { resolve } from "node:path";
 import { MaxpatParseError } from "../errors.js";
 import { parsePatch } from "./parse.js";
@@ -9,35 +9,10 @@ export function readFile(
   options?: ReadOptions,
 ): NormalizedPatch {
   const source = resolve(filePath);
-  let fd: number | undefined;
-  let bytes: Buffer;
+  let bytes: Uint8Array;
   try {
-    fd = fs.openSync(source, "r");
-    const maxBytes = 40 * 1024 * 1024;
-    if (fs.fstatSync(fd).size > maxBytes)
-      throw new Error("Input exceeds 40 MiB UTF-8 byte limit");
-    const chunks: Buffer[] = [];
-    let total = 0;
-    while (true) {
-      const chunk = Buffer.allocUnsafe(Math.min(65536, maxBytes - total + 1));
-      const count = fs.readSync(fd, chunk, 0, chunk.length, null);
-      if (!count) break;
-      total += count;
-      if (total > maxBytes)
-        throw new Error("Input exceeds 40 MiB UTF-8 byte limit");
-      chunks.push(chunk.subarray(0, count));
-    }
-    bytes = Buffer.concat(chunks, total);
-    fs.closeSync(fd);
-    fd = undefined;
+    bytes = readBytes(source, 40 * 1024 * 1024);
   } catch (cause) {
-    if (fd !== undefined) {
-      try {
-        fs.closeSync(fd);
-      } catch (cleanup) {
-        cause = new AggregateError([cause, cleanup], "Read and close failures");
-      }
-    }
     throw new MaxpatParseError(
       "Could not read bounded UTF-8 file",
       source,

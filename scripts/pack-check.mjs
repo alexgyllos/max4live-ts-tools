@@ -77,7 +77,11 @@ try {
   }
   const smoke = `import assert from 'node:assert/strict';
  import {PatchBuilder,parsePatch,serializePatch,diffPatches} from 'max4live-ts-tools/core';
- import {readFile,writeFile,PatchEditor} from 'max4live-ts-tools';
+ import {readFile,writeFile,PatchEditor,createMaxForLiveDevice,readAmxd,writeAmxd,encodeAmxd,decodeAmxd} from 'max4live-ts-tools';
+ import {createRequire} from 'node:module';
+ const require=createRequire(import.meta.url);assert.equal(typeof require('@tsln/amxd').encodeRaw,'function');assert.equal(typeof (await import('@tsln/amxd')).decodeRaw,'function');
+ for(const type of ['audio','midi','instrument']){const device=createMaxForLiveDevice({type,name:'café 🎛️'});writeAmxd(type+'.amxd',device);const loaded=readAmxd(type+'.amxd');assert.equal(loaded.type,type);assert(diffPatches(loaded.patch,decodeAmxd(encodeAmxd(loaded)).patch).equal);}
+
  const patch=new PatchBuilder().object({id:'a',text:'loadbang',numinlets:0,numoutlets:1}).object({id:'b',text:'print example',numinlets:1,numoutlets:0}).connect(['a',0],['b',0]).toNormalized();
  writeFile('created.maxpat',patch);assert(diffPatches(patch,readFile('created.maxpat')).equal);assert.equal(PatchEditor.fromFile('created.maxpat').findById('a').id,'a');assert(diffPatches(patch,parsePatch(serializePatch(patch))).equal);
  const inserted=JSON.parse(serializePatch(patch));inserted.patcher.lines.unshift({patchline:{source:['a',0],destination:['b',0],order:5}});const changes=diffPatches(patch,parsePatch(JSON.stringify(inserted))).changes;assert.equal(changes.length,1);assert.equal(changes[0].kind,'added');assert.equal(changes[0].path,'/patcher/lines/0');`;
@@ -98,7 +102,7 @@ try {
   writeFileSync(
     join(consumer, "types.ts"),
     imports +
-      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());console.log(Root,Core,d);`,
+      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));console.log(Root,Core,d);`,
   );
   const compileTypes = () =>
     spawnSync(
@@ -185,6 +189,42 @@ try {
     [["--json", "check", "--write", good], 2, "stderr"],
     [["--json", "check", good, good], 2, "stderr"],
   ];
+
+  for (const type of ["audio", "midi", "instrument"]) {
+    checks.push(
+      [
+        ["--json", "amxd", "build", good, `built-${type}.amxd`, "--type", type],
+        0,
+        "stdout",
+      ],
+      [["amxd", "inspect", `built-${type}.amxd`, "--json"], 0, "stdout"],
+      [
+        [
+          "amxd",
+          "extract",
+          `built-${type}.amxd`,
+          `extracted-${type}.maxpat`,
+          "--json",
+        ],
+        0,
+        "stdout",
+      ],
+      [
+        ["--json", "amxd", "inspect", `built-${type}.amxd`, "--type", type],
+        2,
+        "stderr",
+      ],
+    );
+  }
+  checks.push(
+    [["--json", "amxd", "build", good, "missing-type.amxd"], 2, "stderr"],
+    [
+      ["--json", "amxd", "build", invalid, "invalid.amxd", "--type", "audio"],
+      1,
+      "stderr",
+    ],
+    [["--json", "amxd", "inspect", "absent.amxd"], 2, "stderr"],
+  );
   const originalBad = readFileSync(join(consumer, invalid), "utf8");
   for (const [args, exit, stream] of checks) {
     const result = cli(args);
@@ -200,6 +240,14 @@ try {
       if (stream === "stderr") {
         assert.equal(resultJson.ok, false);
         assert.equal(typeof resultJson.error.message, "string");
+      } else if (resultJson.command === "amxd") {
+        assert.equal(resultJson.ok, true);
+        assert(["audio", "midi", "instrument"].includes(resultJson.type));
+        if (resultJson.operation === "inspect") {
+          assert.equal(resultJson.containerVersion, 4);
+          assert.equal(resultJson.patcher.boxes, 2);
+          assert.equal(resultJson.patcher.connections, 1);
+        }
       } else if (resultJson.command === "format") {
         assert.equal(typeof resultJson.changed, "boolean");
         assert.equal(typeof resultJson.written, "boolean");

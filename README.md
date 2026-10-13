@@ -1,8 +1,8 @@
 # max4live-ts-tools
 
-TypeScript tools for working with Max patcher files: parse, validate, edit,
-generate, format and compare `.maxpat` JSON, including embedded subpatchers.
-Requires Node 24. ESM only.
+TypeScript tools for working with Max patchers and Max for Live devices:
+parse, validate, edit, generate, format and compare `.maxpat` JSON;
+read and write supported `.amxd` containers. Requires Node 24. ESM only.
 
 ## Installation
 
@@ -18,115 +18,135 @@ npm pack
 Install the resulting `max4live-ts-tools-0.1.0-rc.1.tgz` in your application with
 `npm install /path/to/max4live-ts-tools-0.1.0-rc.1.tgz`.
 
-## Usage
+## Create a patcher
 
 ```ts
-import {
-  PatchBuilder,
-  PatchEditor,
-  readFile,
-  writeFile,
-  diffPatches,
-} from "max4live-ts-tools";
+import { PatchBuilder, writeFile } from "max4live-ts-tools";
 
 const patch = new PatchBuilder()
-  .object({
-    id: "source",
-    text: "loadbang",
-    at: [20, 20],
-    numinlets: 0,
-    numoutlets: 1,
-  })
-  .object({
-    id: "sink",
-    text: "print example",
-    at: [20, 80],
-    numinlets: 1,
-    numoutlets: 0,
-  })
+  .object({ id: "source", text: "loadbang", numinlets: 0, numoutlets: 1 })
+  .object({ id: "sink", text: "print example", numinlets: 1, numoutlets: 0 })
   .connect(["source", 0], ["sink", 0])
   .toNormalized();
-
 writeFile("example.maxpat", patch);
-const original = readFile("example.maxpat");
-const edited = PatchEditor.fromNormalized(original).updateBox("sink", {
-  passthrough: { text: "print revised" },
-});
-writeFile("edited.maxpat", edited.toNormalized());
-console.log(diffPatches(original, edited.toNormalized()));
 ```
 
 `max4live-ts-tools/core` provides filesystem-free parsing, serialisation,
-validation, editing, builders, traversal and diffing. The root entrypoint adds
-`readFile`, `writeFile`, `PatchEditor.fromFile()` and editor `write()`.
-Editor revisions are immutable; returned snapshots and query results are copies.
+validation, editing, builders, traversal and diffing. The Node root entrypoint
+adds file I/O and `.amxd` support. Editor revisions are immutable; returned
+snapshots and query results are copies.
 
-Use `parsePatch` for JSON text and `parsePatchObject` for JSON objects.
-Reads check structure; pass `{ validateGraph: true }` to also reject graph errors.
+Use `parsePatch` for JSON text, `parsePatchObject` for objects and `readFile` for
+files. Reads check structure; `{ validateGraph: true }` also rejects graph errors.
 `validateGraph` returns diagnostics and accepts rule overrides and custom rules.
-Writes and serialisation reject graph errors by default; `{ skipValidation: true }`
-skips graph rules only. Duplicate IDs and non-JSON data are always rejected.
+Writes reject graph errors by default; `{ skipValidation: true }` skips only graph
+rules. Duplicate IDs and non-JSON data are always rejected.
 
-Object port counts must be explicit. Removing an object removes its connections;
-reducing a connected port count throws. Embedded paths are arrays of containing
-box IDs: `walkPatch`, `queryPatch`, `atPath` and `editAtPath` work within those scopes.
-External bpatcher files are preserved but not loaded.
+## Create and edit a Max for Live device
+
+```ts
+import {
+  createMaxForLiveDevice,
+  readAmxd,
+  writeAmxd,
+  PatchEditor,
+} from "max4live-ts-tools";
+
+// "audio": stereo passthrough; "midi": MIDI passthrough;
+// "instrument": MIDI input and audio output, ready to add your synthesis graph.
+const device = createMaxForLiveDevice({ type: "audio", name: "My Effect" });
+writeAmxd("My Effect.amxd", device);
+
+const loaded = readAmxd("My Effect.amxd");
+const editor = PatchEditor.fromNormalized(loaded.patch).updateBox("input", {
+  patchingRect: [40, 40, 80, 22],
+});
+writeAmxd("My Effect.amxd", { ...loaded, patch: editor.toNormalized() });
+```
+
+Templates use `input` and `output` object IDs. Use the existing `PatchEditor` or
+`PatchBuilder` to add objects and connections; object port counts are explicit.
+Removing a box removes its connections; reducing a connected port count throws.
+The [device examples](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/devices.ts)
+also generate a velocity-controlled sine instrument.
+
+`decodeAmxd(bytes)` and `encodeAmxd(device)` work on `Uint8Array`s, using
+[@tsln/amxd](https://github.com/tsln-lab/max-packages/tree/main/packages/amxd).
+Keep the decoded `container` when editing to retain version, metadata and ordered
+binary chunks. Unchanged valid devices round-trip byte-identically; edits preserve
+unknown patcher fields, embedded patchers and opaque chunks, including after `ptch`.
+Supported devices use version 4 `ampf` with a UTF-8 JSON `ptch` payload.
+Frozen `mx@c` archives and encrypted `ciph` variants are rejected explicitly.
+External dependencies are not bundled by this toolkit.
 
 ## CLI
 
-After installation, use `npx --no-install maxpat` in your application:
+After installation, run `npx --no-install maxpat` in your application:
 
 ```sh
 npx --no-install maxpat check --json example.maxpat
-npx --no-install maxpat format example.maxpat
 npx --no-install maxpat format --write example.maxpat
-npx --no-install maxpat diff --json example.maxpat edited.maxpat
+npx --no-install maxpat diff --json before.maxpat after.maxpat
+npx --no-install maxpat amxd build effect.maxpat effect.amxd --type audio
+npx --no-install maxpat amxd extract effect.amxd effect.maxpat
+npx --no-install maxpat amxd inspect effect.amxd --json
 npx --no-install maxpat --help
 ```
 
-`validate` and `check` are aliases. Format checks without writing unless `--write`
-is supplied. Quote paths with spaces; use `--` for names beginning with `-`.
-Exit codes: **0** success/equal/formatted, **1** invalid graph/different/unformatted,
-**2** invocation, parsing, structure or I/O error.
+Build accepts `--type audio`, `midi` or `instrument`; its input patch must provide
+appropriate Live I/O. `validate` and `check` are aliases. Format checks without
+writing unless `--write` is supplied. Quote paths with spaces; use `--` for names
+beginning with `-`. Exit codes: **0** success/equal, **1** invalid graph/different/
+unformatted, **2** invocation, parsing, unsupported format or I/O error.
 
-`--json` emits one document with `schemaVersion: 1`. Validation returns
-`command`, `ok`, `diagnostics`; format returns `command`, `ok`, `changed`, `written`;
-diff returns `command`, `mode: "structural"`, `equal`, `changes`.
-Operation results go to stdout; exceptions go to stderr with `ok: false` and
-`error` details. Each change has `kind`, `path` and optional `before`/`after` values.
-Absent fields mean additions/removals; null is a present value.
+`--json` emits one document with `schemaVersion: 1`. Operation results go to stdout;
+exceptions go to stderr with `ok: false` and `error` details. Diff changes have
+`kind`, `path` and optional `before`/`after`; absence means addition/removal.
+Diffs compare IDs, metadata, field presence, nested graphs and array order, ignoring
+whitespace and key order. Connections match content then endpoints, retaining
+duplicates. Rewiring removes/adds a cord; relative reorderings appear at `lineOrder`.
+Added/updated paths use new indices; removed paths use original indices. These are
+change descriptions, not JSON Patch operations.
 
-Diffs compare IDs, metadata, field presence, nested graphs and array order;
-whitespace and object key order are ignored. Connections match content first,
-then endpoints, retaining duplicates and reporting metadata edits separately.
-Rewiring removes/adds a connection; relative reorderings appear at `lineOrder`
-with original connection indices. Added/updated paths use new indices and removed
-paths use original indices. Paths describe changes; they are not JSON Patch operations.
+## Typed Max runtime example
 
-## File behaviour and limitations
+```sh
+npm ci
+npm run example:live-tempo
+```
 
-Unknown JSON fields, array order and negative zero are preserved. Serialisation
-normalises whitespace and object key order. Inputs are bounded: 40 MiB files,
-20 Mi UTF-16 code units of text, 128 JSON levels, 24 nested patcher levels,
+Load `examples/generated/live-tempo/Live Tempo.amxd` on an audio track. It preserves
+stereo audio and displays Live's tempo, including changes. Keep `tempo.js` beside
+the device or in Max's search path; this unfrozen device is not self-contained.
+Max's native freezing can package dependencies for distribution, but frozen devices
+cannot be edited with this codec.
+
+The separate Max-only configuration uses `@tsln/max-types` and `@tsln/lom-types`.
+The script bundles `@tsln/live-object`, accessing Live only after `live.thisdevice`
+initialises the device. Node library code imports none of these runtime globals.
+See the [@tsln packages and scaffolder](https://github.com/tsln-lab/max-packages).
+
+## File behaviour and development
+
+Unknown fields, array order and negative zero survive parsing and serialisation;
+output normalises whitespace and object key order. Embedded paths are arrays of
+containing box IDs; use `walkPatch`, `queryPatch`, `atPath` and `editAtPath`.
+External bpatcher files are preserved but not loaded. Limits: 40 MiB `.maxpat`,
+64 MiB `.amxd`, 20 Mi UTF-16 text units, 128 JSON levels, 24 nested patcher levels,
 100,000 boxes and 200,000 connections per scope.
 
-Writes use an exclusive temporary file beside the destination, close it, then
-rename it over the destination. Failures before rename preserve the original;
-concurrent replacements use the last successful rename. Symlink destinations are
-rejected; use stable parent directories. New files use mode 0600; existing POSIX
-permission bits are preserved. Replacement does not provide power-loss durability.
-On Windows, transient rename failures retry up to eight attempts with 560 ms total
-scheduled waiting. These APIs are synchronous; use a worker for latency-sensitive
-Electron/UI calls.
+Writes validate before creating an exclusive temporary file, close it and rename
+it over the destination. Pre-rename failures preserve the original; concurrent
+writes use the last successful rename. Symlinks are rejected; use stable parents.
+New files use mode 0600; existing POSIX permission bits are preserved. Replacement
+is not power-loss durable. Windows retries can wait 560 ms; these APIs are
+synchronous, so use a worker for latency-sensitive UI calls.
 
-The toolkit handles `.maxpat` JSON, not binary `.amxd` devices or Max execution.
-Max save/reopen compatibility remains unverified.
+The examples were tested in Live 12.4.6 with Max 9.1.5, including save/reload,
+stereo playback, MIDI note-on/off, tempo observation and nested patcher editing.
 This project is not affiliated with Ableton or Cycling '74.
 
-## Development
-
-Use Node 24 and `npm ci`. Run `npm run verify` for formatting, typechecks, tests,
-examples and packed-consumer checks; `npm run format` applies Oxfmt formatting.
-See [CONTRIBUTING](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md)
-and the runnable [examples](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples).
+Run `npm run verify` for formatting, types, tests, examples and installed-package
+checks. `npm run format` applies Oxfmt. See
+[CONTRIBUTING](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md).
 Licensed under [MIT](LICENSE).
