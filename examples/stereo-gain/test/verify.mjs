@@ -18,6 +18,12 @@ test("deterministic public-package build and supported container round-trip", ()
       readFileSync(new URL("../dist/Stereo Gain.amxd", import.meta.url)),
     ),
   );
+  assert.deepEqual(
+    bytes,
+    new Uint8Array(
+      readFileSync(new URL("../Stereo Gain.amxd", import.meta.url)),
+    ),
+  );
   assert.deepEqual(encodeAmxd(decodeAmxd(bytes)), bytes);
   assert.equal(validateGraph(decodeAmxd(bytes).patch).ok, true);
 });

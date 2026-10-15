@@ -11,7 +11,9 @@ npm run build
 npm test
 ```
 
-Load `dist/Stereo Gain.amxd` on an audio track in Live. Gain is linear: 0 silences
+The [prebuilt Stereo Gain device](Stereo%20Gain.amxd) is checked byte-for-byte
+against the generated output. Load it, or `dist/Stereo Gain.amxd`, on an audio
+track in Live. Gain is linear: 0 silences
 both channels, 0.5 is approximately −6.02 dB, and 1 preserves amplitude. Channels
 remain separate. A single registered Gain dial controls both multipliers through
 `pack 0. 10` and `line~ 0.5` (10 ms ramps).
