@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 — Unreleased
+## 0.2.0 — 2026-10-15
 
 - Unified CLI inspection, validation and structural diffs for `.maxpat` and supported `.amxd` files, with optional bounded container diffs.
 - CLI device creation for audio, MIDI and instrument templates, including a playable sine instrument and safe refusal to overwrite existing files without `--force`.
