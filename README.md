@@ -80,6 +80,41 @@ Supported devices use version 4 `ampf` with a UTF-8 JSON `ptch` payload.
 Frozen `mx@c` archives and encrypted `ciph` variants are rejected explicitly.
 External dependencies are not bundled by this toolkit.
 
+## Live float parameters
+
+```ts
+import {
+  createMaxForLiveDevice,
+  addLiveParameter,
+  writeAmxd,
+} from "max4live-ts-tools";
+
+const device = addLiveParameter(createMaxForLiveDevice({ type: "audio" }), {
+  id: "gain",
+  name: "Gain",
+  type: "float",
+  min: 0,
+  max: 1,
+  default: 0.5,
+  presentation: { x: 20, y: 20, width: 60, height: 48 },
+});
+writeAmxd("Gain.amxd", device);
+```
+
+`addLiveParameter` returns an owned device revision with a root `live.dial`, saved
+float attributes and Live parameter registration. Long/short names and scripting
+names must be unique; conflicts and malformed existing dictionaries are rejected.
+`shortName` and `varname` default to `name` and `id`. `at: [x, y]` sets patching
+position; automatic presentation finds space beside existing presentation objects
+and grows the device width as needed. Explicit presentation geometry is retained. Existing
+bank assignments and container chunks are preserved. Connect the dial's first
+outlet to your processing graph to use its value; adding a dial does not apply gain.
+Float parameter registration, automation recording/playback, saved-Set recall and
+read/edit/rewrite/reload were tested in Live 12.4.6 with Max 9.1.5.
+This API supports automated/stored float dials only, with finite ranges and an
+initial value. Max may normalise UI dimensions (vertical dials use a 48px height).
+See the [parameter example](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/parameters.ts).
+
 ## CLI
 
 After installation, run `npx --no-install maxpat` in your application:
