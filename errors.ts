@@ -35,6 +35,7 @@ export class MaxpatValidationError extends Error {
 }
 
 export class MaxpatWriteError extends Error {
+  readonly code?: string;
   readonly filePath: string;
   declare readonly cause?: unknown;
 
@@ -42,6 +43,13 @@ export class MaxpatWriteError extends Error {
     super(`${message} (${filePath})`);
     this.name = "MaxpatWriteError";
     this.filePath = filePath;
+    if (
+      cause &&
+      typeof cause === "object" &&
+      "code" in cause &&
+      typeof cause.code === "string"
+    )
+      this.code = cause.code;
     if (cause !== undefined) {
       (this as { cause?: unknown }).cause = cause;
     }

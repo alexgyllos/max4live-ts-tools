@@ -16,11 +16,13 @@ vi.mock("node:fs", async (original) => {
     ...actual,
     linkSync: vi.fn(actual.linkSync),
     writeFileSync: vi.fn(actual.writeFileSync),
+    unlinkSync: vi.fn(actual.unlinkSync),
   };
 });
 const actual = await vi.importActual<typeof fs>("node:fs");
 const dirs: string[] = [];
 afterEach(() => {
+  vi.mocked(fs.unlinkSync).mockReset().mockImplementation(actual.unlinkSync);
   vi.mocked(fs.linkSync).mockReset().mockImplementation(actual.linkSync);
   vi.mocked(fs.writeFileSync)
     .mockReset()
@@ -98,7 +100,12 @@ it("refuses existing output, permits --force and leaves no temporary files", () 
   const { file, dir } = setup();
   const output = file("Existing.amxd");
   fs.writeFileSync(output, "keep");
-  expect(cli("create", "audio", output).status).toBe(2);
+  expect(cli("create", "audio", output)).toMatchObject({
+    status: 2,
+    value: {
+      error: { code: "EEXIST", message: expect.stringContaining("--force") },
+    },
+  });
   expect(fs.readFileSync(output, "utf8")).toBe("keep");
   expect(cli("create", "audio", output, "--force").status).toBe(0);
   expect(readAmxd(output).type).toBe("audio");
@@ -111,7 +118,12 @@ it("cannot clobber a file created after the initial existence check", () => {
     actual.writeFileSync(dest, "other writer");
     actual.linkSync(source, dest);
   });
-  expect(cli("create", "audio", output).status).toBe(2);
+  expect(cli("create", "audio", output)).toMatchObject({
+    status: 2,
+    value: {
+      error: { code: "EEXIST", message: expect.stringContaining("--force") },
+    },
+  });
   expect(fs.readFileSync(output, "utf8")).toBe("other writer");
   expect(fs.readdirSync(dir)).toEqual(["Raced.amxd"]);
 });
@@ -147,4 +159,30 @@ it("rejects invocation mistakes before writing and has focused help", () => {
     expect(cli(...args).status).toBe(2);
   expect(fs.readdirSync(dir)).toEqual([]);
   expect(cli("create", "--help").value.help).toContain("--force");
+});
+
+it("recognises committed output when a temporary cleanup retry succeeds", () => {
+  const { file, dir } = setup();
+  vi.mocked(fs.unlinkSync).mockImplementationOnce(() => {
+    throw Object.assign(new Error("busy"), { code: "EACCES" });
+  });
+  expect(cli("create", "audio", file("Committed.amxd")).status).toBe(0);
+  expect(readAmxd(file("Committed.amxd")).type).toBe("audio");
+  expect(fs.readdirSync(dir)).toEqual(["Committed.amxd"]);
+});
+it("reports persistent post-commit cleanup failure accurately", () => {
+  const { file } = setup();
+  const fail = () => {
+    throw Object.assign(new Error("busy"), { code: "EACCES" });
+  };
+  vi.mocked(fs.unlinkSync)
+    .mockImplementationOnce(fail)
+    .mockImplementationOnce(fail);
+  expect(cli("create", "audio", file("Committed.amxd"))).toMatchObject({
+    status: 2,
+    value: {
+      error: { message: expect.stringContaining("Destination created") },
+    },
+  });
+  expect(readAmxd(file("Committed.amxd")).type).toBe("audio");
 });
