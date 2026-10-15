@@ -1,0 +1,20 @@
+{
+  "name": "stereo-gain-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node .build/build.js",
+    "test": "npm run build && node --test test/verify.mjs"
+  },
+  "dependencies": {
+    "max4live-ts-tools": "0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": "^24.0.0"
+  }
+}
