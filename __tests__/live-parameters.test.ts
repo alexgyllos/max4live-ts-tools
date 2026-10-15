@@ -189,3 +189,38 @@ it("validates the intentionally narrow float API, ranges, identifiers and geomet
       } as LiveParameterOptions),
     ).toThrow();
 });
+
+it("expands default device width to keep five or more parameters visible", () => {
+  let device = createMaxForLiveDevice({ type: "audio" });
+  for (let i = 0; i < 10; i++)
+    device = addLiveParameter(device, {
+      ...options,
+      id: `p${i}`,
+      name: `Parameter ${i}`,
+    });
+  const width = device.patch.patcherMeta.passthrough.devicewidth as number;
+  expect(width).toBe(800);
+  for (const box of device.patch.boxes.values())
+    if (box.maxclass === "live.dial") {
+      const rect = box.passthrough.presentation_rect as number[];
+      expect(rect[0] + rect[2]).toBeLessThanOrEqual(width);
+      expect(rect[1]).toBe(20);
+    }
+});
+
+it("round-trips the qualified Max-saved device byte-identically and preserves its dials during edits", () => {
+  const bytes = readFileSync(
+    new URL("./fixtures/live-parameters-max-9.1.5.amxd", import.meta.url),
+  );
+  const device = decodeAmxd(bytes);
+  expect(Buffer.from(encodeAmxd(device))).toEqual(bytes);
+  const changed = PatchEditor.fromNormalized(device.patch)
+    .updateBox("input", { patchingRect: [40, 60, 80, 22] })
+    .toNormalized();
+  const round = decodeAmxd(encodeAmxd({ ...device, patch: changed }));
+  for (const id of ["gain", "mix"])
+    expect(round.patch.boxes.get(id)).toEqual(device.patch.boxes.get(id));
+  expect(round.patch.patcherMeta.passthrough.parameters).toEqual(
+    device.patch.patcherMeta.passthrough.parameters,
+  );
+});

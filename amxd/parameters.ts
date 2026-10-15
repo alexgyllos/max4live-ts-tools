@@ -162,8 +162,8 @@ export function addLiveParameter(
     }
   const count = Object.values(registration).filter(Array.isArray).length;
   const presentation = options.presentation ?? {
-    x: 20 + (count % 8) * 80,
-    y: 20 + Math.floor(count / 8) * 70,
+    x: 20 + count * 80,
+    y: 20,
     width: 60,
     height: 48,
   };
@@ -195,6 +195,15 @@ export function addLiveParameter(
       "INVALID_PARAMETER",
       "Expected finite patching position [x, y]",
     );
+  const layout =
+    options.presentation === undefined
+      ? {
+          devicewidth: Math.max(
+            typeof meta.devicewidth === "number" ? meta.devicewidth : 320,
+            80 * (count + 1),
+          ),
+        }
+      : {};
   const rect: Rect = [
     presentation.x,
     presentation.y,
@@ -206,7 +215,12 @@ export function addLiveParameter(
       maxclass: "live.dial",
       numinlets: 1,
       numoutlets: 2,
-      patchingRect: [options.at?.[0] ?? 240, options.at?.[1] ?? 50, 41, 48],
+      patchingRect: [
+        options.at?.[0] ?? 240 + count * 80,
+        options.at?.[1] ?? 50,
+        41,
+        48,
+      ],
       passthrough: {
         outlettype: ["", "float"],
         parameter_enable: 1,
@@ -234,6 +248,7 @@ export function addLiveParameter(
   editor = editor.withMetadata({
     passthrough: {
       ...meta,
+      ...layout,
       parameters: { ...registration, [id]: [name, shortName, 0] },
     },
   });
