@@ -58,3 +58,13 @@ export type { PatchScope } from "./nested.js";
 
 export { diffPatches } from "./diff.js";
 export type { DiffChange, PatchDiff } from "./diff.js";
+
+export { AmxdError, decodeAmxd, encodeAmxd } from "./amxd/codec.js";
+export type {
+  AmxdDevice,
+  AmxdDeviceType,
+  AmxdContainer,
+  AmxdChunk,
+} from "./amxd/codec.js";
+export { readAmxd, writeAmxd } from "./amxd/files.js";
+export { createMaxForLiveDevice } from "./amxd/template.js";

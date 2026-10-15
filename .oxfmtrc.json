@@ -10,6 +10,7 @@
     "package-lock.json",
     "**/*.maxpat",
     ".examples/**",
-    "examples/generated/**"
+    "examples/generated/**",
+    "**/*.amxd"
   ]
 }

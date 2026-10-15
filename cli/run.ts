@@ -4,6 +4,10 @@ import { writeFile } from "../io/writer.js";
 import { serializePatch } from "../io/parse.js";
 import { validateGraph } from "../validate/graph.js";
 import { diffPatches } from "../diff.js";
+import { readAmxd, writeAmxd } from "../amxd/files.js";
+import type { AmxdDeviceType } from "../amxd/codec.js";
+import { validateDeviceBuild } from "../amxd/validate.js";
+import { walkPatch } from "../nested.js";
 import { stableStringify } from "../io/serializer.js";
 import { MaxpatStructuralError, MaxpatValidationError } from "../errors.js";
 export type CliIO = {
@@ -16,6 +20,9 @@ const help = `Usage: maxpat <command> [options] <files>
   format <file>         Check deterministic formatting (no writes)
   format --write <file> Apply validated atomic replacement
   diff <file-a> <file-b> ID-sensitive structural diff
+  amxd build <in.maxpat> <out.amxd> --type audio|midi|instrument
+  amxd extract <in.amxd> <out.maxpat>
+  amxd inspect <in.amxd>
 Options: --json, --write (format only), --help, --version, -- (end flags)
 Exit codes: 0 success/equal/formatted; 1 invalid graph/different/unformatted;
 2 invocation, JSON, structural or I/O failure. JSON schemaVersion is 1.
@@ -27,6 +34,7 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     showHelp = false,
     showVersion = false,
     endFlags = false;
+  let deviceType: string | undefined;
   const positional: string[] = [];
   const error = (e: unknown, code = 2): number => {
     const message = e instanceof Error ? e.message : String(e);
@@ -57,13 +65,24 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     .slice(0, flagsEnd < 0 ? args.length : flagsEnd)
     .includes("--json");
   try {
-    for (const arg of args) {
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
       if (endFlags) {
         positional.push(arg);
         continue;
       }
       if (arg === "--") {
         endFlags = true;
+        continue;
+      }
+      if (arg === "--type") {
+        if (
+          deviceType !== undefined ||
+          !args[i + 1] ||
+          args[i + 1].startsWith("-")
+        )
+          throw new Error("--type requires one device type");
+        deviceType = args[++i];
         continue;
       }
       if (arg === "--json") {
@@ -95,7 +114,7 @@ export function runCli(args: string[], version: string, io: CliIO): number {
       return 0;
     }
     if (showVersion) {
-      if (positional.length || write)
+      if (positional.length || write || deviceType !== undefined)
         throw new Error("--version takes no command/files");
       io.stdout(
         json
@@ -105,6 +124,73 @@ export function runCli(args: string[], version: string, io: CliIO): number {
       return 0;
     }
     const [command, ...files] = positional;
+    if (command === "amxd") {
+      const [operation, ...paths] = files;
+      if (write) throw new Error("--write is only supported by format");
+      if (!["build", "extract", "inspect"].includes(operation))
+        throw new Error("Expected amxd build, extract or inspect");
+      if (paths.length !== (operation === "inspect" ? 1 : 2))
+        throw new Error(
+          `${operation} requires ${operation === "inspect" ? "one file" : "two files"}`,
+        );
+      let result: Record<string, unknown>;
+      if (operation === "build") {
+        if (
+          !deviceType ||
+          !["audio", "midi", "instrument"].includes(deviceType)
+        )
+          throw new Error(
+            "amxd build requires --type audio, midi or instrument",
+          );
+        const device = {
+          type: deviceType as AmxdDeviceType,
+          patch: readFile(paths[0], { validateGraph: true }),
+        };
+        validateDeviceBuild(device);
+        writeAmxd(paths[1], device);
+        result = { type: deviceType, output: paths[1] };
+      } else {
+        if (deviceType !== undefined)
+          throw new Error("--type is only supported by amxd build");
+        const device = readAmxd(paths[0]);
+        if (operation === "extract") {
+          writeFile(paths[1], device.patch, { skipValidation: true });
+          result = { type: device.type, output: paths[1] };
+        } else {
+          result = {
+            type: device.type,
+            containerVersion: device.container!.version,
+            patcher: {
+              boxes: device.patch.boxes.size,
+              connections: device.patch.lines.length,
+              scopes: [...walkPatch(device.patch)].length,
+              ...(typeof device.patch.patcherMeta.passthrough.title === "string"
+                ? { name: device.patch.patcherMeta.passthrough.title }
+                : {}),
+            },
+          };
+        }
+      }
+      const description =
+        operation === "inspect"
+          ? JSON.stringify(result.patcher)
+          : String(result.output);
+      io.stdout(
+        json
+          ? stableStringify({
+              schemaVersion: 1,
+              command,
+              operation,
+              ok: true,
+              ...result,
+            }) + "\n"
+          : `${operation} ${result.type} device: ${description}\n`,
+      );
+      return 0;
+    }
+    if (deviceType !== undefined)
+      throw new Error("--type is only supported by amxd build");
+
     if (!["validate", "check", "format", "diff"].includes(command))
       throw new Error("Expected validate, check, format or diff; use --help");
     if (files.length !== (command === "diff" ? 2 : 1))
