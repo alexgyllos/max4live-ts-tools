@@ -105,9 +105,12 @@ writeAmxd("Gain.amxd", device);
 float attributes and Live parameter registration. Long/short names and scripting
 names must be unique; conflicts and malformed existing dictionaries are rejected.
 `shortName` and `varname` default to `name` and `id`. `at: [x, y]` sets patching
-position; presentation defaults place successive controls side by side. Existing
+position; presentation defaults place successive controls side by side and grow
+the device width as needed. Explicit presentation geometry is retained. Existing
 bank assignments and container chunks are preserved. Connect the dial's first
 outlet to your processing graph to use its value; adding a dial does not apply gain.
+Float parameter registration, automation recording/playback, saved-Set recall and
+read/edit/rewrite/reload were tested in Live 12.4.6 with Max 9.1.5.
 This API supports automated/stored float dials only, with finite ranges and an
 initial value. Max may normalise UI dimensions (vertical dials use a 48px height).
 See the [parameter example](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/parameters.ts).
