@@ -4,6 +4,7 @@ import {
   writeFileSync,
   rmSync,
   mkdirSync,
+  cpSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -463,6 +464,28 @@ Root.encodeAmxd(device,{overwrite:false});`,
   assert(!readdirSync(consumer).some((f) => f.startsWith(".maxpat-")));
   console.log(
     `Packed consumer verified: ${pack.filename}; imports/types, installed bin, ${checks.length} CLI cases, four concurrent writers`,
+  );
+  const stereo = join(temp, "stereo-gain");
+  cpSync("examples/stereo-gain", stereo, {
+    recursive: true,
+    filter: (path) =>
+      !/(^|[/\\])(node_modules|dist|\.build)([/\\]|$)/.test(path),
+  });
+  requireSuccess(
+    npm(
+      [
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        join(temp, pack.filename),
+      ],
+      stereo,
+    ),
+  );
+  requireSuccess(npm(["test"], stereo));
+  console.log(
+    "Standalone Stereo Gain consumer built and tested against the packed candidate",
   );
 } catch (error) {
   verificationError = error;

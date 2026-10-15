@@ -12,5 +12,10 @@
     "types": ["node"]
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "examples/live-tempo"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "examples/live-tempo",
+    "examples/stereo-gain"
+  ]
 }
