@@ -69,7 +69,7 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     if (command === "amxd") return amxd(files, deviceType, json, io);
     if (!["inspect", "validate", "check", "format", "diff"].includes(command))
       throw new Error(
-        "Expected inspect, validate, check, format, diff or amxd; use --help",
+        "Expected inspect, validate, check, format, diff, create, amxd, deps or package; use --help",
       );
     requireFiles(command, files, command === "diff" ? 2 : 1);
     switch (command) {

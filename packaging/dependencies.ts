@@ -126,7 +126,10 @@ function localAbstraction(
 ): boolean {
   return roots.some((root) =>
     [path.dirname(source), root].some((dir) => {
-      const candidate = path.resolve(dir, object + ".maxpat");
+      const candidate = path.resolve(
+        dir,
+        object.replaceAll("\\", "/") + ".maxpat",
+      );
       return (
         roots.some((root) => inside(root, candidate)) &&
         fs.existsSync(candidate)
@@ -163,9 +166,32 @@ function bufferReference(
   parts: string[],
   label: string,
 ): Reference | undefined {
+  const file = attributeFilename(parts, ["@file", "@audiofile"]);
+  if (file !== undefined) return { reference: file, kind: "media", label };
   const name = parts[2];
   if (!name || name.startsWith("@") || Number.isFinite(Number(name))) return;
   return { reference: name, kind: "media", label };
+}
+function attributeFilename(
+  parts: string[],
+  names: string[],
+): string | undefined {
+  const index = parts.findIndex((part) => names.includes(part));
+  if (index < 0) return;
+  const value = parts[index + 1];
+  return value && !value.startsWith("@") ? value : "<dynamic filename>";
+}
+function patcherReference(parts: string[], label: string): Reference {
+  const name =
+    (parts[0] === "poly~"
+      ? attributeFilename(parts, ["@patchername"])
+      : undefined) ?? parts[1];
+  return {
+    reference: name && !name.startsWith("@") ? name : "<dynamic patcher>",
+    kind: "patcher",
+    label,
+    suffix: ".maxpat",
+  };
 }
 function objectReference(
   box: NormalizedBox,
@@ -182,7 +208,7 @@ function objectReference(
   const text = box.passthrough.text,
     parts = tokens(text),
     object = parts[0] ?? text.trim().split(/\s+/)[0];
-  if (["js", "v8", "jsui", "v8ui"].includes(object))
+  if (["js", "v8", "jsui", "v8ui", "node.script"].includes(object))
     return {
       reference:
         parts[1] && !parts[1].startsWith("@") ? parts[1] : "<dynamic script>",
@@ -190,6 +216,8 @@ function objectReference(
       label,
       suffix: ".js",
     };
+  if (["poly~", "pfft~"].includes(object))
+    return patcherReference(parts, label);
   if (object === "buffer~") return bufferReference(parts, label);
   if (object === "bpatcher") {
     const index = parts.indexOf("@name");
@@ -298,13 +326,16 @@ function candidateExists(candidate: string, roots: string[]): boolean {
   }
 }
 function candidates(ref: Reference, source: string, roots: string[]): string[] {
-  const names = [ref.reference];
-  if (ref.suffix && !path.extname(ref.reference))
-    names.push(ref.reference + ref.suffix);
+  const reference = ref.reference.replaceAll("\\", "/");
+  const names = [reference];
+  if (ref.suffix && !path.posix.extname(reference))
+    names.push(reference + ref.suffix);
   const bases = [
     path.dirname(source),
     ...roots,
-    ...(ref.hints ?? []).map((h) => path.resolve(path.dirname(source), h)),
+    ...(ref.hints ?? []).map((h) =>
+      path.resolve(path.dirname(source), h.replaceAll("\\", "/")),
+    ),
   ];
   const matches = new Set<string>();
   for (const base of bases)
@@ -332,6 +363,7 @@ function resolveReference(
     reference.startsWith("<") ||
     reference.startsWith("~") ||
     path.isAbsolute(reference) ||
+    path.win32.isAbsolute(reference) ||
     /^(?:[a-zA-Z]:|[a-z]+:)/.test(reference)
   ) {
     return {
@@ -353,7 +385,9 @@ function resolveReference(
   if (!resolved)
     return { ...dep, reason: "No regular file found inside the project roots" };
   const name =
-    !path.extname(reference) && ref.suffix && resolved.endsWith(ref.suffix)
+    !path.posix.extname(reference.replaceAll("\\", "/")) &&
+    ref.suffix &&
+    resolved.endsWith(ref.suffix)
       ? reference + ref.suffix
       : reference;
   const dest = destination(owner, name);

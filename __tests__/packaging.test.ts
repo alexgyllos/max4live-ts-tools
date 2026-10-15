@@ -125,6 +125,127 @@ it("handles quoted script names and extensionless scripts", () => {
     "tempo.js",
   );
 });
+const staticDeclarations = [
+  ["node.script engine.js", "engine.js", "javascript"],
+  ["poly~ voice 8", "voice.maxpat", "patcher"],
+  ["pfft~ spectrum 1024", "spectrum.maxpat", "patcher"],
+  ['buffer~ sample @file "drum loop.wav"', "drum loop.wav", "media"],
+  ["buffer~ sample @audiofile drums.wav", "drums.wav", "media"],
+  ["poly~ @patchername voice @voices 8", "voice.maxpat", "patcher"],
+] as const;
+it.each(staticDeclarations)(
+  "packages %s without a dependency cache",
+  (text, name, kind) => {
+    const { file, device } = setup();
+    const input = device(text);
+    expect(
+      readAmxd(input).patch.patcherMeta.passthrough.dependency_cache,
+    ).toBeUndefined();
+    const bytes =
+      kind === "patcher"
+        ? '{"patcher":{"boxes":[{"box":{"id":"script","maxclass":"newobj","text":"js nested.js","numinlets":1,"numoutlets":1,"patching_rect":[0,0,100,22]}}]}}'
+        : "fixture";
+    fs.writeFileSync(file(name), bytes);
+    fs.writeFileSync(file("nested.js"), "outlets=1;");
+    const discovered = discover(input);
+    expect(discovered.dependencies[0]).toMatchObject({
+      status: "resolved",
+      kind,
+      destination: name,
+    });
+    const output = file("out");
+    writePackage(discovered, output);
+    const packaged = fs.readFileSync(join(output, name), "utf8");
+    if (kind === "patcher") {
+      expect(JSON.parse(packaged)).toEqual(JSON.parse(bytes));
+      expect(fs.readFileSync(join(output, "nested.js"), "utf8")).toBe(
+        "outlets=1;",
+      );
+    } else expect(packaged).toBe(bytes);
+    expect(fs.readFileSync(file(name), "utf8")).toBe(bytes);
+  },
+);
+it.each(staticDeclarations)("blocks packaging when %s is missing", (text) => {
+  const { file, device } = setup();
+  const input = device(text);
+  expect(discover(input).dependencies[0].status).toBe("missing");
+  expect(cli("package", input, "--output", file("out")).status).toBe(1);
+  expect(fs.existsSync(file("out"))).toBe(false);
+});
+it.each([
+  "node.script #1",
+  "poly~ #1 8",
+  "pfft~ #1 1024",
+  "buffer~ sample @file #1",
+  "node.script",
+  "poly~",
+  "pfft~",
+  "buffer~ sample @file",
+  "poly~ @patchername @voices 8",
+])("reports %s as unresolved", (text) => {
+  const { file, device } = setup();
+  const input = device(text);
+  expect(discover(input).dependencies[0].status).toBe("unresolved");
+  expect(cli("package", input, "--output", file("out")).status).toBe(1);
+  expect(fs.existsSync(file("out"))).toBe(false);
+});
+it.each(["scripts/engine.js", "scripts\\engine.js"])(
+  "resolves and preserves the layout of %s on every host",
+  (reference) => {
+    const { file, device } = setup();
+    fs.mkdirSync(file("scripts"));
+    fs.writeFileSync(file("scripts/engine.js"), "fixture");
+    const input = device(`node.script "${reference}"`);
+    const report = discover(input);
+    expect(report.dependencies[0]).toMatchObject({
+      status: "resolved",
+      destination: "scripts/engine.js",
+    });
+    writePackage(report, file("out"));
+    expect(fs.readFileSync(file("out/scripts/engine.js"), "utf8")).toBe(
+      "fixture",
+    );
+  },
+);
+it("normalises cache hints and extensionless patcher references consistently", () => {
+  const { file, device } = setup();
+  fs.mkdirSync(file("patchers.v1"));
+  fs.mkdirSync(file("scripts"));
+  fs.mkdirSync(file("scripts/nested"));
+  fs.writeFileSync(
+    file("patchers.v1/voice.maxpat"),
+    '{"patcher":{"boxes":[]}}',
+  );
+  fs.writeFileSync(file("scripts/nested/engine.js"), "fixture");
+  const input = device("poly~ patchers.v1\\voice 8", {
+    dependency_cache: [
+      { name: "engine.js", patcherrelativepath: "scripts\\nested" },
+    ],
+  });
+  const report = discover(input);
+  expect(report.dependencies.map((dep) => dep.status)).toEqual([
+    "resolved",
+    "resolved",
+  ]);
+  writePackage(report, file("out"));
+  expect(fs.existsSync(file("out/patchers.v1/voice.maxpat"))).toBe(true);
+  expect(fs.existsSync(file("out/engine.js"))).toBe(true);
+});
+it.each([
+  "..\\outside.js",
+  "C:\\outside.js",
+  "\\\\server\\share\\outside.js",
+  "\\outside.js",
+])("blocks unsafe Windows reference %s on every host", (reference) => {
+  const { file, device } = setup();
+  const input = device(`node.script "${reference}"`);
+  expect(discover(input).dependencies[0].status).not.toBe("resolved");
+  expect(cli("package", input, "--output", file("out")).status).toBe(1);
+  expect(fs.existsSync(file("out"))).toBe(false);
+});
+it("lists the new commands when rejecting an unknown command", () => {
+  expect(cli("unknown").value.error.message).toContain("deps or package");
+});
 it("walks embedded scopes and recursively scans external abstractions", () => {
   const { file, device } = setup();
   fs.writeFileSync(file("helper.js"), "");
