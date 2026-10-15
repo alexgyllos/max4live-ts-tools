@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — 0.1.0
+## 0.1.0 — 2026-10-15
 
 - Unfrozen Max for Live device encoding, editing, I/O templates and CLI conversion using `@tsln/amxd`.
 - Typed Live tempo example using `@tsln` Max/LOM types and LiveObject.

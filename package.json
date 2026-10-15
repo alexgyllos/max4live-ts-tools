@@ -1,7 +1,6 @@
 {
   "name": "max4live-ts-tools",
-  "version": "0.1.0-rc.1",
-  "private": true,
+  "version": "0.1.0",
   "description": "TypeScript tools for working with Max patcher files",
   "type": "module",
   "license": "MIT",
@@ -21,7 +20,7 @@
     }
   },
   "bin": {
-    "maxpat": "./dist/cli/index.js"
+    "maxpat": "dist/cli/index.js"
   },
   "files": [
     "dist",
