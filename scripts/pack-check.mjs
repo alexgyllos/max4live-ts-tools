@@ -80,8 +80,9 @@ try {
  import {readFile,writeFile,PatchEditor,createMaxForLiveDevice,readAmxd,writeAmxd,encodeAmxd,decodeAmxd} from 'max4live-ts-tools';
  import {createRequire} from 'node:module';
  const require=createRequire(import.meta.url);assert.equal(typeof require('@tsln/amxd').encodeRaw,'function');assert.equal(typeof (await import('@tsln/amxd')).decodeRaw,'function');
- for(const type of ['audio','midi','instrument']){const device=createMaxForLiveDevice({type,name:'café 🎛️'});writeAmxd(type+'.amxd',device);const loaded=readAmxd(type+'.amxd');assert.equal(loaded.type,type);assert(diffPatches(loaded.patch,decodeAmxd(encodeAmxd(loaded)).patch).equal);}
+ for(const type of ['audio','midi','instrument']){const device=createMaxForLiveDevice({type,name:'café 🎛️'});writeAmxd(type+'.amxd',device);writeFile(type+'.maxpat',device.patch);const loaded=readAmxd(type+'.amxd');assert.equal(loaded.type,type);assert(diffPatches(loaded.patch,decodeAmxd(encodeAmxd(loaded)).patch).equal);}
 
+ const repair=createMaxForLiveDevice({type:'audio'});repair.patch.lines[0].destId='missing';writeAmxd('repair.amxd',repair,{skipValidation:true});
  const patch=new PatchBuilder().object({id:'a',text:'loadbang',numinlets:0,numoutlets:1}).object({id:'b',text:'print example',numinlets:1,numoutlets:0}).connect(['a',0],['b',0]).toNormalized();
  writeFile('created.maxpat',patch);assert(diffPatches(patch,readFile('created.maxpat')).equal);assert.equal(PatchEditor.fromFile('created.maxpat').findById('a').id,'a');assert(diffPatches(patch,parsePatch(serializePatch(patch))).equal);
  const inserted=JSON.parse(serializePatch(patch));inserted.patcher.lines.unshift({patchline:{source:['a',0],destination:['b',0],order:5}});const changes=diffPatches(patch,parsePatch(JSON.stringify(inserted))).changes;assert.equal(changes.length,1);assert.equal(changes[0].kind,'added');assert.equal(changes[0].path,'/patcher/lines/0');`;
@@ -193,7 +194,15 @@ try {
   for (const type of ["audio", "midi", "instrument"]) {
     checks.push(
       [
-        ["--json", "amxd", "build", good, `built-${type}.amxd`, "--type", type],
+        [
+          "--json",
+          "amxd",
+          "build",
+          `${type}.maxpat`,
+          `built-${type}.amxd`,
+          "--type",
+          type,
+        ],
         0,
         "stdout",
       ],
@@ -224,6 +233,30 @@ try {
       "stderr",
     ],
     [["--json", "amxd", "inspect", "absent.amxd"], 2, "stderr"],
+    [
+      ["--json", "amxd", "build", good, "unconfigured.amxd", "--type", "audio"],
+      2,
+      "stderr",
+    ],
+    [
+      [
+        "--json",
+        "amxd",
+        "build",
+        "audio.maxpat",
+        "wrong-type.amxd",
+        "--type",
+        "midi",
+      ],
+      2,
+      "stderr",
+    ],
+    [
+      ["--json", "amxd", "extract", "repair.amxd", "repair.maxpat"],
+      0,
+      "stdout",
+    ],
+    [["--json", "validate", "repair.maxpat"], 1, "stdout"],
   );
   const originalBad = readFileSync(join(consumer, invalid), "utf8");
   for (const [args, exit, stream] of checks) {
@@ -246,7 +279,10 @@ try {
         if (resultJson.operation === "inspect") {
           assert.equal(resultJson.containerVersion, 4);
           assert.equal(resultJson.patcher.boxes, 2);
-          assert.equal(resultJson.patcher.connections, 1);
+          assert.equal(
+            resultJson.patcher.connections,
+            { audio: 2, midi: 1, instrument: 0 }[resultJson.type],
+          );
         }
       } else if (resultJson.command === "format") {
         assert.equal(typeof resultJson.changed, "boolean");
@@ -265,6 +301,11 @@ try {
     }
   }
   assert.equal(readFileSync(join(consumer, invalid), "utf8"), originalBad);
+  assert.equal(
+    JSON.parse(readFileSync(join(consumer, "repair.maxpat"), "utf8")).patcher
+      .lines[0].patchline.destination[0],
+    "missing",
+  );
   // Real installed bin wrappers, including Windows npm-generated .cmd, through npm exec.
   requireSuccess(
     npm(["exec", "--offline", "--", "maxpat", "--version"], consumer),

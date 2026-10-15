@@ -93,8 +93,16 @@ npx --no-install maxpat amxd inspect effect.amxd --json
 npx --no-install maxpat --help
 ```
 
-Build accepts `--type audio`, `midi` or `instrument`; its input patch must provide
-appropriate Live I/O. `validate` and `check` are aliases. Format checks without
+Build accepts `--type audio`, `midi` or `instrument`. Start with
+`createMaxForLiveDevice()` or a device patch exported from Max: build rejects
+missing project dictionaries, missing/mismatched `project.amxdtype`, invalid
+graphs and missing built-in I/O. Audio requires `plugin~` and `plugout~`; MIDI
+requires MIDI input/output objects (such as `midiin`/`midiout`); instruments
+require `plugout~`. Embedded patchers are checked; external abstractions are not
+loaded. This preflight does not replace testing in Live. Extract preserves
+structurally valid patchers even with broken connections, for repair.
+
+`validate` and `check` are aliases. Format checks without
 writing unless `--write` is supplied. Quote paths with spaces; use `--` for names
 beginning with `-`. Exit codes: **0** success/equal, **1** invalid graph/different/
 unformatted, **2** invocation, parsing, unsupported format or I/O error.

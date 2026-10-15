@@ -1,13 +1,13 @@
 import { PatchBuilder } from "../editor/patch-builder.js";
 import type { AmxdDevice, AmxdDeviceType } from "./codec.js";
 import { AmxdError } from "./codec.js";
+import { DEVICE_TYPE_TAGS } from "./validate.js";
 /** I/O port counts and project type tags follow Live's saved Max device templates. */
 export function createMaxForLiveDevice(options: {
   type: AmxdDeviceType;
   name?: string;
 }): AmxdDevice {
-  const tags = { audio: 1633771873, midi: 1835887981, instrument: 1768515945 };
-  if (!Object.hasOwn(tags, options.type))
+  if (!Object.hasOwn(DEVICE_TYPE_TAGS, options.type))
     throw new AmxdError(
       "UNSUPPORTED_AMXD",
       "Expected audio, midi or instrument device type",
@@ -27,7 +27,7 @@ export function createMaxForLiveDevice(options: {
       title: options.name ?? "Untitled Device",
       project: {
         version: 1,
-        amxdtype: tags[options.type],
+        amxdtype: DEVICE_TYPE_TAGS[options.type],
         readonly: 0,
         devpathtype: 0,
         devpath: ".",

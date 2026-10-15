@@ -6,6 +6,7 @@ import { validateGraph } from "../validate/graph.js";
 import { diffPatches } from "../diff.js";
 import { readAmxd, writeAmxd } from "../amxd/files.js";
 import type { AmxdDeviceType } from "../amxd/codec.js";
+import { validateDeviceBuild } from "../amxd/validate.js";
 import { walkPatch } from "../nested.js";
 import { stableStringify } from "../io/serializer.js";
 import { MaxpatStructuralError, MaxpatValidationError } from "../errors.js";
@@ -141,17 +142,19 @@ export function runCli(args: string[], version: string, io: CliIO): number {
           throw new Error(
             "amxd build requires --type audio, midi or instrument",
           );
-        writeAmxd(paths[1], {
+        const device = {
           type: deviceType as AmxdDeviceType,
-          patch: readFile(paths[0]),
-        });
+          patch: readFile(paths[0], { validateGraph: true }),
+        };
+        validateDeviceBuild(device);
+        writeAmxd(paths[1], device);
         result = { type: deviceType, output: paths[1] };
       } else {
         if (deviceType !== undefined)
           throw new Error("--type is only supported by amxd build");
         const device = readAmxd(paths[0]);
         if (operation === "extract") {
-          writeFile(paths[1], device.patch);
+          writeFile(paths[1], device.patch, { skipValidation: true });
           result = { type: device.type, output: paths[1] };
         } else {
           result = {
@@ -168,6 +171,10 @@ export function runCli(args: string[], version: string, io: CliIO): number {
           };
         }
       }
+      const description =
+        operation === "inspect"
+          ? JSON.stringify(result.patcher)
+          : String(result.output);
       io.stdout(
         json
           ? stableStringify({
@@ -177,7 +184,7 @@ export function runCli(args: string[], version: string, io: CliIO): number {
               ok: true,
               ...result,
             }) + "\n"
-          : `${operation} ${result.type} device${operation === "inspect" ? `: ${JSON.stringify(result.patcher)}` : `: ${result.output}`}\n`,
+          : `${operation} ${result.type} device: ${description}\n`,
       );
       return 0;
     }

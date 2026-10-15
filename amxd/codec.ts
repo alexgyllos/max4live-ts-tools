@@ -1,5 +1,6 @@
 import { decodeRaw, encodeRaw, type DeviceType, type Chunk } from "@tsln/amxd";
 import { parsePatch, serializePatch } from "../io/parse.js";
+import { validateDeviceProject } from "./validate.js";
 import type { NormalizedPatch, ReadOptions, WriteOptions } from "../types.js";
 export type AmxdDeviceType = DeviceType;
 export type AmxdChunk = Chunk;
@@ -27,7 +28,7 @@ export class AmxdError extends Error {
 }
 const MAX_BYTES = 64 * 1024 * 1024;
 const tagAt = (bytes: Uint8Array, offset = 0): string =>
-  String.fromCharCode(...bytes.subarray(offset, offset + 4));
+  String.fromCodePoint(...bytes.subarray(offset, offset + 4));
 const malformed = (message: string): never => {
   throw new AmxdError("MALFORMED_AMXD", message);
 };
@@ -151,24 +152,9 @@ export function encodeAmxd(
   options?: WriteOptions,
 ): Uint8Array {
   const text = serializePatch(device.patch, options);
-  const project = device.patch.patcherMeta.passthrough.project;
-  if (project !== undefined) {
-    if (
-      !project ||
-      typeof project !== "object" ||
-      Array.isArray(project) ||
-      ["searchpath", "layout", "contents"].some((key) => {
-        const value = (project as Record<string, unknown>)[key];
-        return !value || typeof value !== "object" || Array.isArray(value);
-      })
-    )
-      malformed(
-        "Device project metadata requires searchpath, layout and contents dictionaries",
-      );
-  }
-
   if (!["audio", "midi", "instrument"].includes(device.type))
     malformed("Expected audio, midi or instrument device type");
+  validateDeviceProject(device);
   const { version = 4, meta = 0 } = device.container ?? {};
   if (!uint32(version) || version !== 4)
     throw new AmxdError(

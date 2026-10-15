@@ -25,8 +25,8 @@ export function readBytes(source: string, maxBytes: number): Uint8Array {
     if (fd !== undefined) {
       try {
         fs.closeSync(fd);
-      } catch (cleanup) {
-        cause = new AggregateError([cause, cleanup], "Read and close failures");
+      } catch (error_) {
+        cause = new AggregateError([cause, error_], "Read and close failures");
       }
     }
     throw cause;

@@ -60,6 +60,15 @@ const unusual = (payload: Uint8Array) =>
     chunk("post", Uint8Array.from([9, 8])),
     chunk("post", Uint8Array.from([7])),
   ]);
+const cli = (args: string[]) => {
+  let stdout = "",
+    stderr = "";
+  const exit = runCli(args, "test", {
+    stdout: (t) => (stdout += t),
+    stderr: (t) => (stderr += t),
+  });
+  return { exit, stdout, stderr };
+};
 describe("amxd container adapter", () => {
   // Fixtures were authored with this library and saved by Max 9.1.5 in Live 12.4.6.
   it.each([
@@ -300,6 +309,176 @@ describe("amxd container adapter", () => {
   });
 });
 describe("binary file replacement and CLI", () => {
+  it.each([
+    ["audio-passthrough", "audio"],
+    ["midi-passthrough", "midi"],
+    ["sine-instrument", "instrument"],
+    ["audio-nested", "audio"],
+  ] as const)("builds the native Max-saved %s patch", (name, type) => {
+    const device = readAmxd(
+      fileURLToPath(
+        new URL(`./fixtures/${name}-max-9.1.5.amxd`, import.meta.url),
+      ),
+    );
+    const dir = directory(),
+      input = join(dir, "native.maxpat"),
+      output = join(dir, "rebuilt.amxd");
+    fs.writeFileSync(input, serializePatch(device.patch));
+    expect(cli(["amxd", "build", input, output, "--type", type]).exit).toBe(0);
+    expect(diffPatches(readAmxd(output).patch, device.patch).equal).toBe(true);
+  });
+
+  it.each([
+    "empty",
+    "missing project",
+    "missing searchpath",
+    "missing layout",
+    "missing contents",
+    "missing type",
+    "wrong type",
+    "audio input",
+    "audio output",
+    "midi input",
+    "midi output",
+    "instrument output",
+  ])(
+    "rejects %s configuration without replacing the destination",
+    (problem) => {
+      const type = problem.startsWith("midi")
+        ? "midi"
+        : problem.startsWith("instrument")
+          ? "instrument"
+          : "audio";
+      const device = createMaxForLiveDevice({ type });
+      const project = device.patch.patcherMeta.passthrough.project as Record<
+        string,
+        unknown
+      >;
+      if (problem === "empty")
+        device.patch = parsePatchObject({ patcher: { boxes: [] } });
+      else if (problem === "missing project")
+        delete device.patch.patcherMeta.passthrough.project;
+      else if (problem === "missing type") delete project.amxdtype;
+      else if (problem === "wrong type") project.amxdtype = 1835887981;
+      else if (problem.startsWith("missing ")) delete project[problem.slice(8)];
+      else {
+        device.patch.boxes.get(
+          problem.endsWith("input") ? "input" : "output",
+        )!.passthrough.text = "print not-device-io";
+      }
+      const dir = directory(),
+        input = join(dir, "source.maxpat"),
+        output = join(dir, "existing.amxd");
+      fs.writeFileSync(input, serializePatch(device.patch));
+      fs.writeFileSync(output, "original");
+      const result = cli([
+        "--json",
+        "amxd",
+        "build",
+        input,
+        output,
+        "--type",
+        type,
+      ]);
+      expect(result.exit).toBe(2);
+      expect(result.stdout).toBe("");
+      expect(JSON.parse(result.stderr).error.message).toMatch(
+        /project|requires/,
+      );
+      expect(fs.readFileSync(output, "utf8")).toBe("original");
+      expect(fs.readdirSync(dir).sort()).toEqual([
+        "existing.amxd",
+        "source.maxpat",
+      ]);
+    },
+  );
+
+  it("finds built-in I/O inside embedded patchers", () => {
+    const device = createMaxForLiveDevice({ type: "audio" });
+    const raw = JSON.parse(serializePatch(device.patch));
+    const child = { boxes: raw.patcher.boxes, lines: raw.patcher.lines };
+    raw.patcher.boxes = [
+      {
+        box: {
+          id: "nested",
+          maxclass: "newobj",
+          text: "p io",
+          numinlets: 0,
+          numoutlets: 0,
+          patching_rect: [0, 0, 80, 20],
+          patcher: child,
+        },
+      },
+    ];
+    raw.patcher.lines = [];
+    const dir = directory(),
+      input = join(dir, "nested.maxpat"),
+      output = join(dir, "nested.amxd");
+    fs.writeFileSync(input, JSON.stringify(raw));
+    expect(cli(["amxd", "build", input, output, "--type", "audio"]).exit).toBe(
+      0,
+    );
+  });
+
+  it("does not mistake comment text for device I/O", () => {
+    const device = createMaxForLiveDevice({ type: "audio" });
+    device.patch.boxes.get("input")!.maxclass = "comment";
+    device.patch.lines = [];
+    const dir = directory(),
+      input = join(dir, "comment.maxpat"),
+      output = join(dir, "comment.amxd");
+    fs.writeFileSync(input, serializePatch(device.patch));
+    expect(cli(["amxd", "build", input, output, "--type", "audio"]).exit).toBe(
+      2,
+    );
+    expect(fs.existsSync(output)).toBe(false);
+  });
+
+  it("rejects a container type that contradicts existing project metadata", () => {
+    const device = createMaxForLiveDevice({ type: "audio" });
+    expect(() => encodeAmxd({ ...device, type: "midi" })).toThrow(
+      /amxdtype must match/,
+    );
+    expect(() => encodeAmxd({ ...device, type: "instrument" })).toThrow(
+      /amxdtype must match/,
+    );
+  });
+
+  it.each(["dangling", "out-of-range"])(
+    "extracts a structurally valid patch with %s connections",
+    (problem) => {
+      const device = createMaxForLiveDevice({ type: "audio" });
+      if (problem === "dangling") device.patch.lines[0].destId = "missing";
+      else device.patch.lines[0].sourceOutlet = 99;
+      const dir = directory(),
+        input = join(dir, "repair.amxd"),
+        output = join(dir, "repair.maxpat");
+      fs.writeFileSync(input, encodeAmxd(device, { skipValidation: true }));
+      const result = cli(["--json", "amxd", "extract", input, output]);
+      expect(result.exit).toBe(0);
+      expect(result.stderr).toBe("");
+      expect(fs.readFileSync(output, "utf8")).toBe(
+        serializePatch(device.patch, { skipValidation: true }),
+      );
+      expect(cli(["validate", output]).exit).toBe(1);
+      const original = fs.readFileSync(input);
+      expect(
+        cli(["amxd", "build", output, input, "--type", "audio"]).exit,
+      ).toBe(1);
+      expect(fs.readFileSync(input)).toEqual(original);
+    },
+  );
+
+  it("rejects malformed patch structure during extraction without replacing output", () => {
+    const dir = directory(),
+      input = join(dir, "malformed.amxd"),
+      output = join(dir, "existing.maxpat");
+    fs.writeFileSync(input, raw('{"patcher":{"boxes":"invalid"}}'));
+    fs.writeFileSync(output, "original");
+    expect(cli(["amxd", "extract", input, output]).exit).toBe(2);
+    expect(fs.readFileSync(output, "utf8")).toBe("original");
+  });
+
   it.each(["searchpath", "layout", "contents"])(
     "rejects an incomplete Max project (%s) before replacing a file",
     (key) => {
@@ -355,28 +534,15 @@ describe("binary file replacement and CLI", () => {
       expect(fs.readdirSync(dir)).toEqual(["effect.amxd"]);
     },
   );
-  it.each(["audio", "midi", "instrument"])(
+  it.each(["audio", "midi", "instrument"] as const)(
     "builds, inspects and extracts %s devices",
     (type) => {
       const dir = directory(),
         input = join(dir, "source.maxpat"),
         output = join(dir, "device.amxd"),
         extracted = join(dir, "extracted.maxpat");
-      fs.writeFileSync(
-        input,
-        serializePatch(
-          parsePatchObject({ patcher: { boxes: [], custom: "café" } }),
-        ),
-      );
-      const cli = (args: string[]) => {
-        let stdout = "",
-          stderr = "";
-        const exit = runCli(args, "test", {
-          stdout: (t) => (stdout += t),
-          stderr: (t) => (stderr += t),
-        });
-        return { exit, stdout, stderr };
-      };
+      const device = createMaxForLiveDevice({ type, name: "café" });
+      fs.writeFileSync(input, serializePatch(device.patch));
       expect(
         cli(["amxd", "build", input, output, "--type", type, "--json"]).exit,
       ).toBe(0);
@@ -387,7 +553,11 @@ describe("binary file replacement and CLI", () => {
         operation: "inspect",
         type,
         containerVersion: 4,
-        patcher: { boxes: 0, connections: 0, scopes: 1 },
+        patcher: {
+          boxes: 2,
+          connections: type === "audio" ? 2 : type === "midi" ? 1 : 0,
+          scopes: 1,
+        },
       });
       expect(cli(["amxd", "extract", output, extracted]).exit).toBe(0);
       expect(fs.readFileSync(extracted, "utf8")).toBe(
