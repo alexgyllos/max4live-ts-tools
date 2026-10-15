@@ -331,6 +331,32 @@ it("refuses an existing output by default and replaces only when explicitly requ
   );
   expect(fs.existsSync(file("out/old"))).toBe(false);
 });
+it("refuses corrupted staged manifests before claiming output", () => {
+  const { file, device } = setup();
+  const input = device("live.thisdevice");
+  const discovery = discover(input);
+  vi.mocked(fs.writeFileSync).mockImplementation((...args) => {
+    if (
+      String(args[0]).includes(".maxpat-package-") &&
+      String(args[0]).endsWith("maxpat-package.json")
+    )
+      return actual.writeFileSync(args[0], "corrupt");
+    return actual.writeFileSync(...args);
+  });
+  expect(() => writePackage(discovery, file("out"))).toThrow(
+    /manifest verification/,
+  );
+  expect(fs.existsSync(file("out"))).toBe(false);
+});
+it("bounds saved dependency-cache references before expanding the report", () => {
+  const { device } = setup();
+  const input = device("live.thisdevice", {
+    dependency_cache: Array.from({ length: 4097 }, (_, i) => ({
+      name: `file-${i}.js`,
+    })),
+  });
+  expect(() => discover(input)).toThrow(/reference limit/);
+});
 it("cleans partial staging writes before an output exists", () => {
   const { file, dir, device } = setup();
   const input = device();

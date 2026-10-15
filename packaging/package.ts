@@ -175,6 +175,13 @@ function stageFiles(plan: Plan, state: WriteState): void {
     JSON.stringify(plan.manifest, null, 2) + "\n",
     { flag: "wx", mode: 0o644 },
   );
+  const expectedManifest = Buffer.from(
+    JSON.stringify(plan.manifest, null, 2) + "\n",
+  );
+  if (
+    !readSafe(path.join(stage, manifestName), [stage]).equals(expectedManifest)
+  )
+    throw new Error("Staged manifest verification failed");
   for (const file of plan.files)
     if (
       hash(readSafe(path.join(stage, file.path), [stage])) !== hash(file.bytes)

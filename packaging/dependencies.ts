@@ -93,6 +93,8 @@ function cacheReferences(cache: unknown, label: string): Reference[] {
     )
   )
     throw new Error(`Malformed dependency_cache in ${label}`);
+  if (cache.length > 4096)
+    throw new Error("Dependency reference limit exceeded (4096)");
   return (cache as Record<string, unknown>[]).map((item) => ({
     reference: item.name as string,
     kind: "cache",
@@ -217,35 +219,32 @@ function clipReferences(clips: unknown, label: string): Reference[] {
       label,
     }));
 }
-function graphReferences(
+function* graphReferences(
   patch: NormalizedPatch,
   source: string,
   roots: string[],
-): Reference[] {
-  const refs: Reference[] = [];
+): Generator<Reference> {
   for (const scope of walkPatch(patch)) {
     const label =
       portable(path.relative(roots[0], source)) +
       "#" +
       scope.path.map((id) => "/" + id).join("");
-    refs.push(
-      ...cacheReferences(
-        scope.patch.patcherMeta.passthrough.dependency_cache,
-        label,
-      ),
-      ...projectReferences(scope.patch.patcherMeta.passthrough.project, label),
+    yield* cacheReferences(
+      scope.patch.patcherMeta.passthrough.dependency_cache,
+      label,
+    );
+    yield* projectReferences(
+      scope.patch.patcherMeta.passthrough.project,
+      label,
     );
     for (const box of scope.patch.boxes.values()) {
       const boxLabel = label + "/" + box.id;
-      refs.push(
-        ...uiReferences(box, boxLabel),
-        ...clipReferences(box.passthrough.clips, boxLabel),
-      );
+      yield* uiReferences(box, boxLabel);
+      yield* clipReferences(box.passthrough.clips, boxLabel);
       const ref = objectReference(box, source, roots, boxLabel);
-      if (ref) refs.push(ref);
+      if (ref) yield ref;
     }
   }
-  return refs;
 }
 function attributionReferences(source: string, root: string): Reference[] {
   return fs
