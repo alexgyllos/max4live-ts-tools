@@ -21,5 +21,5 @@ export function writeAmxd(
   device: AmxdDevice,
   options?: WriteOptions,
 ): void {
-  writeAtomicFile(filePath, encodeAmxd(device, options));
+  writeAtomicFile(filePath, encodeAmxd(device, options), options);
 }

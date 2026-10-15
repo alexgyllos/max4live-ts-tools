@@ -74,6 +74,8 @@ export type ReadOptions = {
 };
 
 export type WriteOptions = {
+  /** File writers only: false atomically refuses an existing destination. Default true. */
+  overwrite?: boolean;
   /** Skips graph rules only; structural validation can never be skipped. */
   skipValidation?: boolean;
   ruleConfig?: RuleConfig;

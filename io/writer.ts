@@ -8,5 +8,5 @@ export function writeFile(
   patch: NormalizedPatch,
   options?: WriteOptions,
 ): void {
-  writeAtomicFile(filePath, serializePatch(patch, options));
+  writeAtomicFile(filePath, serializePatch(patch, options), options);
 }
