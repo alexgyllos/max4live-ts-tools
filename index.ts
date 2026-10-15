@@ -53,6 +53,8 @@ export type {
   PatcherPath,
   BuilderOptions,
   ObjectOptions,
+  CommonObjectName,
+  CommonObjectOptions,
 } from "./editor/index.js";
 export { walkPatch, queryPatch } from "./nested.js";
 export type { PatchScope } from "./nested.js";

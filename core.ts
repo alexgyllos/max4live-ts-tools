@@ -17,7 +17,12 @@ export type {
   MatchOptions,
   PatcherPath,
 } from "./editor/patch-editor.js";
-export type { BuilderOptions, ObjectOptions } from "./editor/patch-builder.js";
+export type {
+  BuilderOptions,
+  ObjectOptions,
+  CommonObjectOptions,
+  CommonObjectName,
+} from "./editor/patch-builder.js";
 export { walkPatch, queryPatch } from "./nested.js";
 export type { PatchScope } from "./nested.js";
 

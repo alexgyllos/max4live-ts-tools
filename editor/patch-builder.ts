@@ -1,3 +1,4 @@
+import { commonObject, type CommonObjectName } from "./common-objects.js";
 import { assertJson } from "../validate/json.js";
 import { PatchEditor } from "./patch-editor.js";
 import type {
@@ -24,6 +25,11 @@ export type ObjectOptions = {
   numoutlets: number;
   attributes?: Record<string, unknown>;
 };
+export type CommonObjectOptions = Omit<
+  ObjectOptions,
+  "maxclass" | "numinlets" | "numoutlets"
+>;
+export type { CommonObjectName } from "./common-objects.js";
 /** Fluent immutable builder. Port counts are explicit: object text cannot reliably infer them offline. */
 export class PatchBuilder {
   #editor: PatchEditor;
@@ -98,6 +104,41 @@ export class PatchBuilder {
       },
       options.id,
     );
+  }
+  /** Adds one verified fixed-port object. Use object() for dynamic ports or arbitrary text. */
+  add(name: CommonObjectName, options: CommonObjectOptions = {}): PatchBuilder {
+    assertJson(options);
+    if (!options || typeof options !== "object" || Array.isArray(options))
+      throw new TypeError("Expected common object options");
+    for (const key of ["maxclass", "numinlets", "numoutlets"])
+      if (Object.hasOwn(options, key))
+        throw new TypeError(
+          `${key} overrides require object() with explicit port counts`,
+        );
+    const definition = commonObject(name);
+    if (
+      options.attributes !== undefined &&
+      (!options.attributes ||
+        typeof options.attributes !== "object" ||
+        Array.isArray(options.attributes))
+    )
+      throw new TypeError("Expected attributes object");
+    if (options.text !== undefined && !["message", "comment"].includes(name))
+      throw new TypeError(
+        "Custom object text requires object() with explicit port counts; add() accepts text for message/comment only",
+      );
+    if (options.attributes && Object.hasOwn(options.attributes, "text"))
+      throw new TypeError(
+        "Use the text option for message/comment, or object() for arbitrary object text",
+      );
+    return this.object({
+      ...options,
+      maxclass: definition.maxclass,
+      numinlets: definition.numinlets,
+      numoutlets: definition.numoutlets,
+      size: options.size ?? definition.size,
+      attributes: { ...definition.attributes, ...options.attributes },
+    });
   }
   connect(
     src: PatchlineEndpoint,
