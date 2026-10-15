@@ -103,7 +103,12 @@ try {
   writeFileSync(
     join(consumer, "types.ts"),
     imports +
-      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));console.log(Root,Core,d);`,
+      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));console.log(Root,Core,d);
+const fileOptions:Root.FileWriteOptions={overwrite:false};Root.writeFile("out.maxpat",p,fileOptions);Root.writeAmxd("out.amxd",device,fileOptions);e.write("out.maxpat",fileOptions);
+// @ts-expect-error overwrite is a filesystem option
+Root.serializePatch(p,{overwrite:false});
+// @ts-expect-error overwrite is not an encoding option
+Root.encodeAmxd(device,{overwrite:false});`,
   );
   const compileTypes = () =>
     spawnSync(
@@ -274,6 +279,41 @@ try {
     ],
     [["--json", "validate", "repair.maxpat"], 1, "stdout"],
   );
+  for (const type of ["audio", "midi", "instrument"]) {
+    const created = `CLI ${type}.amxd`;
+    const extracted = `CLI ${type}.maxpat`;
+    checks.push(
+      [["create", type, created, "--json"], 0, "stdout"],
+      [["inspect", created, "--json"], 0, "stdout"],
+      [["check", created, "--json"], 0, "stdout"],
+      [["amxd", "extract", created, extracted, "--json"], 0, "stdout"],
+      [["diff", created, extracted, "--json"], 0, "stdout"],
+      [
+        [
+          "amxd",
+          "build",
+          extracted,
+          `Rebuilt ${type}.amxd`,
+          "--type",
+          type,
+          "--json",
+        ],
+        0,
+        "stdout",
+      ],
+      [["diff", created, `Rebuilt ${type}.amxd`, "--json"], 0, "stdout"],
+      [["create", type, created, "--json"], 2, "stderr"],
+      [["create", type, created, "--force", "--json"], 0, "stdout"],
+    );
+  }
+  checks.push(
+    [
+      ["create", "instrument", "Sine.amxd", "--template", "sine", "--json"],
+      0,
+      "stdout",
+    ],
+    [["create", "--help"], 0, "stdout"],
+  );
   const originalBad = readFileSync(join(consumer, invalid), "utf8");
   for (const [args, exit, stream] of checks) {
     const result = cli(args);
@@ -317,6 +357,23 @@ try {
     }
   }
   assert.equal(readFileSync(join(consumer, invalid), "utf8"), originalBad);
+  const edited = JSON.parse(
+    readFileSync(join(consumer, "CLI audio.maxpat"), "utf8"),
+  );
+  edited.patcher.boxes[0].box.patching_rect[0] += 10;
+  writeFileSync(join(consumer, "CLI audio.maxpat"), JSON.stringify(edited));
+  assert.equal(
+    cli([
+      "amxd",
+      "build",
+      "CLI audio.maxpat",
+      "Modified.amxd",
+      "--type",
+      "audio",
+    ]).status,
+    0,
+  );
+  assert.equal(cli(["diff", "CLI audio.amxd", "Modified.amxd"]).status, 1);
   assert.equal(
     JSON.parse(readFileSync(join(consumer, "repair.maxpat"), "utf8")).patcher
       .lines[0].patchline.destination[0],

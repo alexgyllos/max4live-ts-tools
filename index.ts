@@ -17,6 +17,7 @@ export type {
   CustomRule,
   ReadOptions,
   WriteOptions,
+  FileWriteOptions,
   BoxSpec,
   BoxUpdate,
 } from "./types.js";

@@ -95,3 +95,9 @@ export type BoxUpdate = {
   patchingRect?: Rect;
   passthrough?: Record<string, unknown>;
 };
+
+/** Options for filesystem writers; serialization-only APIs accept WriteOptions. */
+export type FileWriteOptions = WriteOptions & {
+  /** False atomically refuses an existing destination. Default true. */
+  overwrite?: boolean;
+};

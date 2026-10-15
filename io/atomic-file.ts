@@ -7,10 +7,12 @@ import { MaxpatWriteError } from "../errors.js";
 export function writeAtomicFile(
   filePath: string,
   data: string | Uint8Array,
+  options?: { overwrite?: boolean },
 ): void {
   const target = path.resolve(filePath);
   let fd: number | undefined;
   let temp: string | undefined;
+  let committed = false;
   const cleanupErrors: unknown[] = [];
   try {
     let mode = 0o600;
@@ -18,6 +20,11 @@ export function writeAtomicFile(
       const stat = fs.lstatSync(target);
       if (!stat.isFile() || stat.isSymbolicLink())
         throw new Error("Destination must be a regular file, not a symlink");
+      if (options?.overwrite === false)
+        throw Object.assign(
+          new Error("Destination already exists; use --force to replace it"),
+          { code: "EEXIST" },
+        );
       mode = stat.mode & 0o777;
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
@@ -44,6 +51,15 @@ export function writeAtomicFile(
     if (process.platform !== "win32") fs.fchmodSync(fd, mode);
     fs.closeSync(fd);
     fd = undefined;
+    if (options?.overwrite === false) {
+      // An atomic hard-link install cannot clobber a destination created after lstat.
+      // Both paths share a directory/filesystem; the fully written inode is visible at once.
+      fs.linkSync(temp, target);
+      committed = true;
+      fs.unlinkSync(temp);
+      temp = undefined;
+      return;
+    }
     // Windows can briefly deny replacement while another process releases its
     // file handle. Retry only the failed rename, never unlink the destination.
     for (let attempt = 0; ; attempt++) {
@@ -83,8 +99,14 @@ export function writeAtomicFile(
         cleanupErrors.push(e);
       }
     }
+    if (committed && cleanupErrors.length === 0) return;
     throw new MaxpatWriteError(
-      "Atomic patch replacement failed",
+      committed
+        ? "Destination created, but temporary-file cleanup failed"
+        : (cause as NodeJS.ErrnoException)?.code === "EEXIST" &&
+            options?.overwrite === false
+          ? "Destination already exists; use --force to replace it (library: overwrite: true)"
+          : "Atomic patch replacement failed",
       target,
       cleanupErrors.length
         ? new AggregateError(
