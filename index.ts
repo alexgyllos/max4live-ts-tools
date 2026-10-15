@@ -71,3 +71,5 @@ export type {
 } from "./amxd/codec.js";
 export { readAmxd, writeAmxd } from "./amxd/files.js";
 export { createMaxForLiveDevice } from "./amxd/template.js";
+export { addLiveParameter } from "./amxd/parameters.js";
+export type { LiveParameterOptions } from "./amxd/parameters.js";
