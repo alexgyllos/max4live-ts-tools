@@ -35,8 +35,10 @@ and `NOTICE` files (including suffixed names such as `LICENSE.tsln`) are collect
 Review attribution yourself and explicitly include anything else required.
 
 Discovery covers dependency caches/project contents, embedded patchers, external
-bpatchers and local abstractions, `js`/`v8` script references, and common saved
-media references. It distinguishes missing, ambiguous and dynamically unresolved
+bpatchers and local abstractions, `poly~`/`pfft~` filename arguments,
+`js`/`v8`/`node.script` scripts, and common saved media references including
+`buffer~ @file` (`@audiofile`). `poly~ @patchername` is also recognised.
+Both slash styles are normalised when resolving source files. It distinguishes missing, ambiguous and dynamically unresolved
 references. It does not evaluate JavaScript imports, runtime messages, constructed
 names or Max's global search path. Unknown bare object names are not assumed to be
 missing files. A successful scan is not proof that all runtime dependencies were
@@ -57,6 +59,15 @@ recovery/cleanup failures identify retained locations. Directory publication is
 not atomic or power-loss durable. Use stable parent directories and do not edit
 source files during packaging. JSON follows schemaVersion 1; exit codes remain
 0 success, 1 unresolved dependencies/invalid graph, 2 invocation/format/I/O error.
+
+A cache-free companion distribution was opened in Max 9.1.5 on macOS on
+2026-10-16 with development files temporarily unavailable. Flat `node.script`,
+`poly~`, `pfft~` and `buffer~ @file` references loaded successfully: the script
+and both patchers printed their markers and the buffer reported 100 ms.
+Subfolder filename probes did not resolve in that standalone Max session.
+Preserving a directory layout does not validate Max's runtime path semantics;
+qualify your actual references in Live/Max before distributing. The CLI does not
+rewrite object filename arguments or configure Max's search path.
 
 ## Native Freeze
 
