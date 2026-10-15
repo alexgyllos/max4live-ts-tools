@@ -55,6 +55,7 @@ try {
         "--no-audit",
         "--no-fund",
         join(temp, pack.filename),
+        `@types/node@${JSON.parse(readFileSync("package.json", "utf8")).devDependencies["@types/node"]}`,
       ],
       consumer,
     ),
