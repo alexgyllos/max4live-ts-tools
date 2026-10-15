@@ -77,11 +77,12 @@ try {
   }
   const smoke = `import assert from 'node:assert/strict';
  import {PatchBuilder,parsePatch,serializePatch,diffPatches} from 'max4live-ts-tools/core';
- import {readFile,writeFile,PatchEditor,createMaxForLiveDevice,readAmxd,writeAmxd,encodeAmxd,decodeAmxd} from 'max4live-ts-tools';
+ import {readFile,writeFile,PatchEditor,createMaxForLiveDevice,readAmxd,writeAmxd,encodeAmxd,decodeAmxd,addLiveParameter} from 'max4live-ts-tools';
  import {createRequire} from 'node:module';
  const require=createRequire(import.meta.url);assert.equal(typeof require('@tsln/amxd').encodeRaw,'function');assert.equal(typeof (await import('@tsln/amxd')).decodeRaw,'function');
  for(const type of ['audio','midi','instrument']){const device=createMaxForLiveDevice({type,name:'café 🎛️'});writeAmxd(type+'.amxd',device);writeFile(type+'.maxpat',device.patch);const loaded=readAmxd(type+'.amxd');assert.equal(loaded.type,type);assert(diffPatches(loaded.patch,decodeAmxd(encodeAmxd(loaded)).patch).equal);}
 
+ const parameter=addLiveParameter(createMaxForLiveDevice({type:'audio'}),{id:'gain',name:'Gain',type:'float',min:0,max:1,default:0.5});const registered=decodeAmxd(encodeAmxd(parameter));assert.deepEqual(registered.patch.patcherMeta.passthrough.parameters.gain,['Gain','Gain',0]);
  const repair=createMaxForLiveDevice({type:'audio'});repair.patch.lines[0].destId='missing';writeAmxd('repair.amxd',repair,{skipValidation:true});
  const convenience=new PatchBuilder().add("loadbang",{id:"start"}).add("message",{id:"message",text:"Hello"}).add("print",{id:"output"}).connect(["start",0],["message",0]).connect(["message",0],["output",0]);assert.equal(convenience.toNormalized().boxes.size,3);
  const patch=new PatchBuilder().object({id:'a',text:'loadbang',numinlets:0,numoutlets:1}).object({id:'b',text:'print example',numinlets:1,numoutlets:0}).connect(['a',0],['b',0]).toNormalized();
@@ -104,7 +105,7 @@ try {
   writeFileSync(
     join(consumer, "types.ts"),
     imports +
-      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder().add("loadbang").add("print");walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));console.log(Root,Core,d);
+      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,addLiveParameter,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder().add("loadbang").add("print");walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));addLiveParameter(device,{id:"gain",name:"Gain",type:"float",min:0,max:1,default:0.5});console.log(Root,Core,d);
 const fileOptions:Root.FileWriteOptions={overwrite:false};Root.writeFile("out.maxpat",p,fileOptions);Root.writeAmxd("out.amxd",device,fileOptions);e.write("out.maxpat",fileOptions);
 // @ts-expect-error overwrite is a filesystem option
 Root.serializePatch(p,{overwrite:false});
