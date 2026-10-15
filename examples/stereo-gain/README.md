@@ -4,6 +4,11 @@ A compact stereo audio effect built offline in TypeScript with the public
 `max4live-ts-tools@0.2.0` package. The generated device uses built-in Max objects
 only: no JavaScript runtime or companion files.
 
+The example supports Node 22.12+ and Node 24, with Node 22 development types.
+The pinned public `0.2.0` dependency still declares Node 24 in its metadata, so
+npm warns on Node 22 (and `engine-strict` rejects that registry version). Its
+build/tests pass on both versions; the packed candidate removes this mismatch.
+
 ```sh
 cd examples/stereo-gain
 npm install

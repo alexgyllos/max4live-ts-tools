@@ -10,6 +10,31 @@ read and write supported `.amxd` containers. Requires Node 22 (22.12 or newer) o
 npm install max4live-ts-tools
 ```
 
+Generate and check a device:
+
+```sh
+npx --no-install maxpat create audio MyEffect.amxd
+npx --no-install maxpat inspect MyEffect.amxd
+npx --no-install maxpat check MyEffect.amxd
+```
+
+For a functional effect built entirely from TypeScript, try the
+[Stereo Gain example](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/stereo-gain/README.md),
+including its prebuilt device, standalone build and measured Live/Max results.
+
+The workflow has four distinct outputs:
+
+- A `.maxpat` is an editable patcher graph.
+- An unfrozen `.amxd` is a Live device that may still need companion files.
+- A companion-file distribution preserves those files and their relative paths.
+- Native Max **Freeze + Save** collects supported dependencies into a frozen device.
+
+The development candidate adds `deps` and `package`; these commands are not in
+the published `0.2.0` package. See
+[dependency packaging and native Freeze](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/packaging.md)
+for source-build instructions and limitations. Frozen/encrypted devices remain
+outside this toolkit's parser/editor support.
+
 ## Create a patcher
 
 ```ts
