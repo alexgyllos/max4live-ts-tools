@@ -6,17 +6,9 @@ read and write supported `.amxd` containers. Requires Node 24. ESM only.
 
 ## Installation
 
-The package is not yet published to npm. Build a tarball from this repository:
-
 ```sh
-git clone https://github.com/alexgyllos/max4live-ts-tools.git
-cd max4live-ts-tools
-npm ci
-npm pack
+npm install max4live-ts-tools
 ```
-
-Install the resulting `max4live-ts-tools-0.1.0-rc.1.tgz` in your application with
-`npm install /path/to/max4live-ts-tools-0.1.0-rc.1.tgz`.
 
 ## Create a patcher
 
