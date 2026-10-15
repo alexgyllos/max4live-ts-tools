@@ -76,9 +76,13 @@ External dependencies are not bundled by this toolkit.
 After installation, run `npx --no-install maxpat` in your application:
 
 ```sh
+npx --no-install maxpat inspect effect.amxd --json
+npx --no-install maxpat check effect.amxd
 npx --no-install maxpat check --json example.maxpat
 npx --no-install maxpat format --write example.maxpat
 npx --no-install maxpat diff --json before.maxpat after.maxpat
+npx --no-install maxpat diff original.amxd modified.amxd
+npx --no-install maxpat diff effect.amxd effect.maxpat
 npx --no-install maxpat amxd build effect.maxpat effect.amxd --type audio
 npx --no-install maxpat amxd extract effect.amxd effect.maxpat
 npx --no-install maxpat amxd inspect effect.amxd --json
@@ -94,13 +98,27 @@ require `plugout~`. Embedded patchers are checked; external abstractions are not
 loaded. This preflight does not replace testing in Live. Extract preserves
 structurally valid patchers even with broken connections, for repair.
 
-`validate` and `check` are aliases. Format checks without
+`inspect`, `validate`, `check` and `diff` accept supported `.amxd` and `.maxpat`
+inputs. Device headers identify binary inputs; mismatched extensions are rejected.
+Inspection reports recursive counts and graph status without dumping the patcher.
+Validation checks container/project consistency and all embedded graphs without
+requiring built-in I/O objects or resolving external abstractions.
+`amxd inspect` remains an alias. Use `<command> --help` for command-specific options.
+
+Diff compares patcher structure by default: an unmodified device equals its
+extracted `.maxpat`. `diff a.amxd b.amxd --include-container` also compares device
+type, container version, metadata, binary chunks and their order. JSON keeps
+patcher `changes` and optional `container.changes` separate; embedded JSON
+whitespace is ignored and patcher payload changes are counted once.
+
+`validate` and `check` are aliases. Format accepts `.maxpat` only and checks without
 writing unless `--write` is supplied. Quote paths with spaces; use `--` for names
 beginning with `-`. Exit codes: **0** success/equal, **1** invalid graph/different/
 unformatted, **2** invocation, parsing, unsupported format or I/O error.
 
 `--json` emits one document with `schemaVersion: 1`. Operation results go to stdout;
-exceptions go to stderr with `ok: false` and `error` details. Diff changes have
+exceptions go to stderr with `ok: false` and `error` details, including `error.code`
+when available (for example `UNSUPPORTED_AMXD`). Diff changes have
 `kind`, `path` and optional `before`/`after`; absence means addition/removal.
 Diffs compare IDs, metadata, field presence, nested graphs and array order, ignoring
 whitespace and key order. Connections match content then endpoints, retaining

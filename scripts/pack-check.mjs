@@ -172,6 +172,8 @@ try {
     [["--help"], 0, "stdout"],
     [["--version"], 0, "stdout"],
     [["validate", good], 0, "stdout"],
+    [["inspect", good, "--json"], 0, "stdout"],
+    [["diff", "--help", "--json"], 0, "stdout"],
     [["--json", "check", good], 0, "stdout"],
     [["validate", "--json", invalid], 1, "stdout"],
     [["check", invalid, "--json"], 1, "stdout"],
@@ -207,6 +209,20 @@ try {
         "stdout",
       ],
       [["amxd", "inspect", `built-${type}.amxd`, "--json"], 0, "stdout"],
+      [["inspect", `built-${type}.amxd`, "--json"], 0, "stdout"],
+      [["check", `built-${type}.amxd`, "--json"], 0, "stdout"],
+      [["diff", `built-${type}.amxd`, `${type}.maxpat`, "--json"], 0, "stdout"],
+      [
+        [
+          "diff",
+          `built-${type}.amxd`,
+          `${type}.amxd`,
+          "--include-container",
+          "--json",
+        ],
+        0,
+        "stdout",
+      ],
       [
         [
           "amxd",
@@ -287,7 +303,7 @@ try {
       } else if (resultJson.command === "format") {
         assert.equal(typeof resultJson.changed, "boolean");
         assert.equal(typeof resultJson.written, "boolean");
-      } else if (resultJson.command === "diff") {
+      } else if (resultJson.command === "diff" && !resultJson.help) {
         assert.equal(resultJson.mode, "structural");
         assert.equal(typeof resultJson.equal, "boolean");
         assert(Array.isArray(resultJson.changes));
