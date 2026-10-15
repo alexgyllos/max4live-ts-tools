@@ -16,9 +16,11 @@ npm install max4live-ts-tools
 import { PatchBuilder, writeFile } from "max4live-ts-tools";
 
 const patch = new PatchBuilder()
-  .object({ id: "source", text: "loadbang", numinlets: 0, numoutlets: 1 })
-  .object({ id: "sink", text: "print example", numinlets: 1, numoutlets: 0 })
-  .connect(["source", 0], ["sink", 0])
+  .add("loadbang", { id: "start" })
+  .add("message", { id: "message", text: "Hello from Max", at: [20, 60] })
+  .add("print", { id: "output", at: [20, 100] })
+  .connect(["start", 0], ["message", 0])
+  .connect(["message", 0], ["output", 0])
   .toNormalized();
 writeFile("example.maxpat", patch);
 ```
@@ -27,6 +29,13 @@ writeFile("example.maxpat", patch);
 validation, editing, builders, traversal and diffing. The Node root entrypoint
 adds file I/O and `.amxd` support. Editor revisions are immutable; returned
 snapshots and query results are copies.
+
+`add()` supplies Max 9.1.5 verified defaults for loadbang, message, comment,
+button, toggle, number/flonum, print, stereo plugin~/plugout~, midiin and midiout.
+Options include `id`, `at`, `size`/`rect`, `attributes` and `varname`; message/comment
+also accept `text`. IDs are deterministic and builder revisions are immutable.
+For arbitrary objects, arguments or dynamic ports, use `object()` with explicit
+port counts. `add()` does not infer ports from text or object arguments.
 
 Use `parsePatch` for JSON text, `parsePatchObject` for objects and `readFile` for
 files. Reads check structure; `{ validateGraph: true }` also rejects graph errors.

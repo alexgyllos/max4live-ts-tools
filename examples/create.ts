@@ -11,22 +11,11 @@ const patch = new PatchBuilder({
   rect: [0, 0, 600, 400],
   metadata: { fileversion: 1, classnamespace: "box" },
 })
-  .object({
-    id: "start",
-    text: "loadbang",
-    numinlets: 0,
-    numoutlets: 1,
-    at: [20, 20],
-  })
-  .object({
-    id: "output",
-    text: "print example",
-    varname: "output",
-    numinlets: 1,
-    numoutlets: 0,
-    at: [20, 80],
-  })
-  .connect(["start", 0], ["output", 0])
+  .add("loadbang", { id: "start", at: [20, 20] })
+  .add("message", { id: "greeting", text: "Hello from Max", at: [20, 60] })
+  .add("print", { id: "output", varname: "output", at: [20, 100] })
+  .connect(["start", 0], ["greeting", 0])
+  .connect(["greeting", 0], ["output", 0])
   .toNormalized();
 writeFile("examples/generated/created.maxpat", patch);
 const editor = PatchEditor.fromNormalized(
