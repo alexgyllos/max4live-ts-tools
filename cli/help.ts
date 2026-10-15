@@ -1,5 +1,8 @@
 const common = "Options: --json, --help (-h), -- (end flags)\n";
 const commands: Record<string, string> = {
+  deps: "Usage: maxpat deps <file.maxpat|file.amxd> [--root <directory>] [--asset <file>] [--json]\nRepeat --root for explicit search roots; the first root contains the source and defines the distribution layout. Static discovery is not exhaustive.\n",
+  package:
+    "Usage: maxpat package <file.amxd> --output <directory> [--root <directory>] [--asset <file>] [--force] [--dry-run] [--json]\nCopies a validated unfrozen device and statically resolved companion files with preserved relative paths. Adjacent licence/notice files are included. --asset includes additional files (repeatable). --force replaces the whole output directory. --dry-run writes nothing and needs no --output. This does not Freeze a device.\n",
   create:
     "Usage: maxpat create <audio|midi|instrument> <output.amxd> [options]\n--name <name> defaults to the output basename.\n--force permits atomic replacement; existing files are refused by default.\n--template sine creates a playable instrument; the default instrument is a silent scaffold.\n",
   inspect:
@@ -26,6 +29,8 @@ export function commandHelp(command?: string): string {
   format     Check or write .maxpat formatting
   diff       Compare .maxpat and/or .amxd patchers
   amxd       Build, extract or inspect a device
+  deps       Discover static companion-file dependencies
+  package    Package an unfrozen device and companion files
 Use maxpat <command> --help for options; --version prints the version.
 Exit codes: 0 success/equal; 1 invalid graph/different/unformatted; 2 invocation, parsing, unsupported format or I/O failure.
 JSON schemaVersion is 1.

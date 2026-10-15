@@ -9,6 +9,10 @@ export type CliArgs = {
   name?: string;
   template?: string;
   force: boolean;
+  roots: string[];
+  assets: string[];
+  output?: string;
+  dryRun: boolean;
 };
 export function wantsJson(args: string[]): boolean {
   const end = args.indexOf("--");
@@ -23,6 +27,9 @@ export function parseArgs(args: string[]): CliArgs {
     includeContainer: false,
     help: false,
     version: false,
+    roots: [],
+    assets: [],
+    dryRun: false,
   };
   let end = false;
   for (let i = 0; i < args.length; i++) {
@@ -35,7 +42,19 @@ export function parseArgs(args: string[]): CliArgs {
       end = true;
       continue;
     }
-    if (arg === "--name" || arg === "--template") {
+    if (arg === "--root" || arg === "--asset" || arg === "--output") {
+      const value = args[++i];
+      if (!value || value.startsWith("-"))
+        throw new Error(`${arg} requires a path`);
+      if (arg === "--root") result.roots.push(value);
+      else if (arg === "--asset") result.assets.push(value);
+      else {
+        if (result.output !== undefined)
+          throw new Error("--output requires one path");
+        result.output = value;
+      }
+    } else if (arg === "--dry-run") result.dryRun = true;
+    else if (arg === "--name" || arg === "--template") {
       const key = arg === "--name" ? "name" : "template";
       if (
         result[key] !== undefined ||

@@ -2,7 +2,7 @@
 
 TypeScript tools for working with Max patchers and Max for Live devices:
 parse, validate, edit, generate, format and compare `.maxpat` JSON;
-read and write supported `.amxd` containers. Requires Node 24. ESM only.
+read and write supported `.amxd` containers. Requires Node 22 (22.12 or newer) or Node 24. ESM only.
 
 ## Installation
 
