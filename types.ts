@@ -74,8 +74,6 @@ export type ReadOptions = {
 };
 
 export type WriteOptions = {
-  /** File writers only: false atomically refuses an existing destination. Default true. */
-  overwrite?: boolean;
   /** Skips graph rules only; structural validation can never be skipped. */
   skipValidation?: boolean;
   ruleConfig?: RuleConfig;
@@ -96,4 +94,10 @@ export type BoxUpdate = {
   numoutlets?: number;
   patchingRect?: Rect;
   passthrough?: Record<string, unknown>;
+};
+
+/** Options for filesystem writers; serialization-only APIs accept WriteOptions. */
+export type FileWriteOptions = WriteOptions & {
+  /** False atomically refuses an existing destination. Default true. */
+  overwrite?: boolean;
 };

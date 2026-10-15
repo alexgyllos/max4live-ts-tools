@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { readBytes } from "../io/read-bytes.js";
 import { writeAtomicFile } from "../io/atomic-file.js";
 import { AmxdError, decodeAmxd, encodeAmxd, type AmxdDevice } from "./codec.js";
-import type { ReadOptions, WriteOptions } from "../types.js";
+import type { ReadOptions, FileWriteOptions } from "../types.js";
 export function readAmxd(filePath: string, options?: ReadOptions): AmxdDevice {
   let bytes;
   try {
@@ -19,7 +19,7 @@ export function readAmxd(filePath: string, options?: ReadOptions): AmxdDevice {
 export function writeAmxd(
   filePath: string,
   device: AmxdDevice,
-  options?: WriteOptions,
+  options?: FileWriteOptions,
 ): void {
   writeAtomicFile(filePath, encodeAmxd(device, options), options);
 }

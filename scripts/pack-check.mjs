@@ -103,7 +103,12 @@ try {
   writeFileSync(
     join(consumer, "types.ts"),
     imports +
-      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));console.log(Root,Core,d);`,
+      `import {PatchEditor,PatchBuilder,parsePatchObject,type NormalizedPatch,type PatchDiff,diffPatches,createMaxForLiveDevice,encodeAmxd,decodeAmxd,type AmxdDevice} from 'max4live-ts-tools';import {walkPatch} from 'max4live-ts-tools/core';const p:NormalizedPatch=parsePatchObject({patcher:{boxes:[]}});const d:PatchDiff=diffPatches(p,p);const e=PatchEditor.fromNormalized(p);new PatchBuilder();walkPatch(e.toNormalized());const device:AmxdDevice=createMaxForLiveDevice({type:"audio"});decodeAmxd(encodeAmxd(device));console.log(Root,Core,d);
+const fileOptions:Root.FileWriteOptions={overwrite:false};Root.writeFile("out.maxpat",p,fileOptions);Root.writeAmxd("out.amxd",device,fileOptions);e.write("out.maxpat",fileOptions);
+// @ts-expect-error overwrite is a filesystem option
+Root.serializePatch(p,{overwrite:false});
+// @ts-expect-error overwrite is not an encoding option
+Root.encodeAmxd(device,{overwrite:false});`,
   );
   const compileTypes = () =>
     spawnSync(
