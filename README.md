@@ -105,8 +105,8 @@ writeAmxd("Gain.amxd", device);
 float attributes and Live parameter registration. Long/short names and scripting
 names must be unique; conflicts and malformed existing dictionaries are rejected.
 `shortName` and `varname` default to `name` and `id`. `at: [x, y]` sets patching
-position; presentation defaults place successive controls side by side and grow
-the device width as needed. Explicit presentation geometry is retained. Existing
+position; automatic presentation finds space beside existing presentation objects
+and grows the device width as needed. Explicit presentation geometry is retained. Existing
 bank assignments and container chunks are preserved. Connect the dial's first
 outlet to your processing graph to use its value; adding a dial does not apply gain.
 Float parameter registration, automation recording/playback, saved-Set recall and

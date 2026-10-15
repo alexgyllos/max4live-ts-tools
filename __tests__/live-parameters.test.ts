@@ -224,3 +224,96 @@ it("round-trips the qualified Max-saved device byte-identically and preserves it
     device.patch.patcherMeta.passthrough.parameters,
   );
 });
+
+it("places automatic controls around existing presentation objects without registrations", () => {
+  const base = createMaxForLiveDevice({ type: "audio" });
+  base.patch = PatchEditor.fromNormalized(base.patch)
+    .addBox(
+      {
+        maxclass: "comment",
+        numinlets: 1,
+        numoutlets: 0,
+        patchingRect: [20, 20, 240, 48],
+        passthrough: {
+          text: "Display",
+          presentation: 1,
+          presentation_rect: [20, 20, 240, 48],
+        },
+      },
+      "display",
+    )
+    .addBox(
+      {
+        maxclass: "button",
+        numinlets: 1,
+        numoutlets: 1,
+        patchingRect: [280, 20, 24, 24],
+        passthrough: { presentation: 1 },
+      },
+      "button",
+    )
+    .toNormalized();
+  expect(base.patch.patcherMeta.passthrough.parameters).toBeUndefined();
+  const added = addLiveParameter(base, options);
+  expect(added.patch.boxes.get("gain")?.passthrough.presentation_rect).toEqual([
+    324, 20, 60, 48,
+  ]);
+  expect(added.patch.patcherMeta.passthrough.devicewidth).toBe(384);
+  const explicit = addLiveParameter(base, {
+    ...options,
+    presentation: { x: 20, y: 20, width: 60, height: 48 },
+  });
+  expect(
+    explicit.patch.boxes.get("gain")?.passthrough.presentation_rect,
+  ).toEqual([20, 20, 60, 48]);
+  expect(explicit.patch.patcherMeta.passthrough.devicewidth).toBe(
+    base.patch.patcherMeta.passthrough.devicewidth,
+  );
+});
+it("uses available gaps and ignores presentation objects in other rows", () => {
+  const base = createMaxForLiveDevice({ type: "audio" });
+  base.patch = PatchEditor.fromNormalized(base.patch)
+    .addBox(
+      {
+        maxclass: "comment",
+        numinlets: 1,
+        numoutlets: 0,
+        patchingRect: [0, 0, 100, 20],
+        passthrough: { presentation: 1, presentation_rect: [0, 100, 100, 20] },
+      },
+      "lower-row",
+    )
+    .addBox(
+      {
+        maxclass: "comment",
+        numinlets: 1,
+        numoutlets: 0,
+        patchingRect: [0, 0, 100, 20],
+        passthrough: { presentation: 1, presentation_rect: [200, 20, 100, 20] },
+      },
+      "right",
+    )
+    .toNormalized();
+  expect(
+    addLiveParameter(base, options).patch.boxes.get("gain")?.passthrough
+      .presentation_rect,
+  ).toEqual([20, 20, 60, 48]);
+});
+it("returned devices and callers own separate mutable container buffers and patch metadata", () => {
+  const base = decodeAmxd(
+    encodeAmxd(createMaxForLiveDevice({ type: "audio" })),
+  );
+  base.container!.chunks = [
+    ...base.container!.chunks,
+    { tag: "blob", data: Uint8Array.of(1, 2, 3) },
+  ];
+  const added = addLiveParameter(base, options);
+  added.container!.chunks[2].data[0] = 9;
+  expect(base.container!.chunks[2].data).toEqual(Uint8Array.of(1, 2, 3));
+  base.container!.chunks[2].data[1] = 8;
+  expect(added.container!.chunks[2].data).toEqual(Uint8Array.of(9, 2, 3));
+  (
+    added.patch.patcherMeta.passthrough.parameters as Record<string, unknown>
+  ).gain = ["Changed", "Changed", 0];
+  expect(base.patch.patcherMeta.passthrough.parameters).toBeUndefined();
+});
