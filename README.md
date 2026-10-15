@@ -76,6 +76,9 @@ External dependencies are not bundled by this toolkit.
 After installation, run `npx --no-install maxpat` in your application:
 
 ```sh
+npx --no-install maxpat create audio MyEffect.amxd
+npx --no-install maxpat create midi MyMidiEffect.amxd
+npx --no-install maxpat create instrument MySynth.amxd --template sine
 npx --no-install maxpat inspect effect.amxd --json
 npx --no-install maxpat check effect.amxd
 npx --no-install maxpat check --json example.maxpat
@@ -88,6 +91,12 @@ npx --no-install maxpat amxd extract effect.amxd effect.maxpat
 npx --no-install maxpat amxd inspect effect.amxd --json
 npx --no-install maxpat --help
 ```
+
+Create refuses existing files unless `--force` is supplied. `--name "Stereo Effect"`
+sets the device name; otherwise it uses the output filename without its extension.
+Audio and MIDI templates pass through their inputs. The default instrument is a
+silent scaffold; `--template sine` adds the example's playable, velocity-controlled
+sine graph. All templates validate before writing.
 
 Build accepts `--type audio`, `midi` or `instrument`. Start with
 `createMaxForLiveDevice()` or a device patch exported from Max: build rejects
@@ -155,6 +164,9 @@ External bpatcher files are preserved but not loaded. Limits: 40 MiB `.maxpat`,
 64 MiB `.amxd`, 20 Mi UTF-16 text units, 128 JSON levels, 24 nested patcher levels,
 100,000 boxes and 200,000 connections per scope.
 
+File writers accept `{ overwrite: false }` to atomically refuse existing files.
+This uses a same-filesystem hard link; filesystems without hard-link support fail
+without replacing the destination. Default library writes still replace.
 Writes validate before creating an exclusive temporary file, close it and rename
 it over the destination. Pre-rename failures preserve the original; concurrent
 writes use the last successful rename. Symlinks are rejected; use stable parents.

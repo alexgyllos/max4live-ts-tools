@@ -6,6 +6,9 @@ export type CliArgs = {
   help: boolean;
   version: boolean;
   deviceType?: string;
+  name?: string;
+  template?: string;
+  force: boolean;
 };
 export function wantsJson(args: string[]): boolean {
   const end = args.indexOf("--");
@@ -16,6 +19,7 @@ export function parseArgs(args: string[]): CliArgs {
     positional: [],
     json: wantsJson(args),
     write: false,
+    force: false,
     includeContainer: false,
     help: false,
     version: false,
@@ -31,7 +35,17 @@ export function parseArgs(args: string[]): CliArgs {
       end = true;
       continue;
     }
-    if (arg === "--type") {
+    if (arg === "--name" || arg === "--template") {
+      const key = arg === "--name" ? "name" : "template";
+      if (
+        result[key] !== undefined ||
+        !args[i + 1] ||
+        args[i + 1].startsWith("-")
+      )
+        throw new Error(`${arg} requires one value`);
+      result[key] = args[++i];
+    } else if (arg === "--force") result.force = true;
+    else if (arg === "--type") {
       if (
         result.deviceType !== undefined ||
         !args[i + 1] ||

@@ -1,5 +1,7 @@
 const common = "Options: --json, --help (-h), -- (end flags)\n";
 const commands: Record<string, string> = {
+  create:
+    "Usage: maxpat create <audio|midi|instrument> <output.amxd> [options]\n--name <name> defaults to the output basename.\n--force permits atomic replacement; existing files are refused by default.\n--template sine creates a playable instrument; the default instrument is a silent scaffold.\n",
   inspect:
     "Usage: maxpat inspect <file.maxpat|file.amxd> [--json]\nShow counts, validation status and device metadata.\n",
   validate:
@@ -18,6 +20,7 @@ export function commandHelp(command?: string): string {
     (command
       ? commands[command]
       : `Usage: maxpat <command> [options] <files>
+  create     Create an audio/MIDI device or instrument scaffold
   inspect    Inspect .maxpat or .amxd
   check      Validate structure and embedded graphs (alias: validate)
   format     Check or write .maxpat formatting

@@ -6,6 +6,7 @@ import { validate } from "./commands/validate.js";
 import { format } from "./commands/format.js";
 import { diff } from "./commands/diff.js";
 import { amxd } from "./commands/amxd.js";
+import { create } from "./commands/create.js";
 export type { CliIO } from "./output.js";
 /** Dispatcher used by the installed binary. Output is one JSON document or text. */
 export function runCli(args: string[], version: string, io: CliIO): number {
@@ -21,6 +22,9 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     if (options.version) {
       if (
         options.positional.length ||
+        options.force ||
+        options.name !== undefined ||
+        options.template !== undefined ||
         write ||
         includeContainer ||
         deviceType !== undefined
@@ -29,12 +33,22 @@ export function runCli(args: string[], version: string, io: CliIO): number {
       output(io, json, { version }, version + "\n");
       return 0;
     }
+    if (
+      command !== "create" &&
+      (options.force ||
+        options.name !== undefined ||
+        options.template !== undefined)
+    )
+      throw new Error(
+        "--force, --name and --template are only supported by create",
+      );
     if (write && command !== "format")
       throw new Error("--write is only supported by format");
     if (includeContainer && command !== "diff")
       throw new Error("--include-container is only supported by diff");
     if (deviceType !== undefined && command !== "amxd")
       throw new Error("--type is only supported by amxd build");
+    if (command === "create") return create(files, options, io);
     if (command === "amxd") return amxd(files, deviceType, json, io);
     if (!["inspect", "validate", "check", "format", "diff"].includes(command))
       throw new Error(
