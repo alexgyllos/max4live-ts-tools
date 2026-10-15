@@ -4,7 +4,7 @@ import { assertJson } from "../validate/json.js";
 import { MaxpatEditError } from "../errors.js";
 import { validateDeviceProject } from "./validate.js";
 import type { AmxdDevice } from "./codec.js";
-import type { Rect } from "../types.js";
+import type { BoxSpec, NormalizedPatch, Rect } from "../types.js";
 
 export type LiveParameterOptions = {
   id: string;
@@ -77,11 +77,11 @@ function parameters(value: unknown): Record<string, unknown> {
   }
   return value;
 }
-/** Adds an automated/stored float live.dial to the root patcher, owning the returned device and container. */
-export function addLiveParameter(
-  device: AmxdDevice,
-  options: LiveParameterOptions,
-): AmxdDevice {
+type ResolvedParameter = LiveParameterOptions & {
+  shortName: string;
+  varname: string;
+};
+function validateOptions(options: LiveParameterOptions): ResolvedParameter {
   assertJson(options);
   if (!options || typeof options !== "object" || Array.isArray(options))
     return fail("INVALID_PARAMETER", "Expected live.dial parameter options");
@@ -124,65 +124,6 @@ export function addLiveParameter(
       "INVALID_PARAMETER",
       "Expected a finite float range min < max and a default within that range",
     );
-  let editor = PatchEditor.fromNormalized(device.patch);
-  validateDeviceProject(device);
-  const owned = structuredClone(device);
-  const meta = owned.patch.patcherMeta.passthrough;
-  const registration = parameters(meta.parameters);
-  if (editor.findById(id) || Object.hasOwn(registration, id))
-    return fail(
-      "PARAMETER_CONFLICT",
-      `Parameter/object ID ${id} already exists`,
-    );
-  for (const box of owned.patch.boxes.values())
-    if (box.passthrough.varname === varname)
-      return fail(
-        "PARAMETER_CONFLICT",
-        `Scripting name ${varname} already exists`,
-      );
-  for (const entry of Object.values(registration))
-    if (Array.isArray(entry) && (entry[0] === name || entry[1] === shortName))
-      return fail(
-        "PARAMETER_CONFLICT",
-        "Parameter long and short names must be unique",
-      );
-  for (const { patch } of walkPatch(owned.patch))
-    for (const box of patch.boxes.values()) {
-      const saved = box.passthrough.saved_attribute_attributes;
-      if (
-        record(saved) &&
-        record(saved.valueof) &&
-        (saved.valueof.parameter_longname === name ||
-          saved.valueof.parameter_shortname === shortName)
-      )
-        return fail(
-          "PARAMETER_CONFLICT",
-          "Parameter long and short names must be unique across embedded patchers",
-        );
-    }
-  const count = Object.values(registration).filter(Array.isArray).length;
-  const presentation = options.presentation ?? {
-    x: 20 + count * 80,
-    y: 20,
-    width: 60,
-    height: 48,
-  };
-  if (
-    !presentation ||
-    typeof presentation !== "object" ||
-    [
-      presentation.x,
-      presentation.y,
-      presentation.width,
-      presentation.height,
-    ].some((value) => typeof value !== "number" || !Number.isFinite(value)) ||
-    presentation.width <= 0 ||
-    presentation.height <= 0
-  )
-    return fail(
-      "INVALID_PARAMETER",
-      "Expected finite presentation coordinates and positive dimensions",
-    );
   if (
     options.at !== undefined &&
     (!Array.isArray(options.at) ||
@@ -195,63 +136,177 @@ export function addLiveParameter(
       "INVALID_PARAMETER",
       "Expected finite patching position [x, y]",
     );
+  if (options.presentation !== undefined)
+    presentationRect(options.presentation);
+  return { ...options, shortName, varname };
+}
+function assertNoConflicts(
+  patch: NormalizedPatch,
+  registration: Record<string, unknown>,
+  options: ResolvedParameter,
+): void {
+  const { id, name, shortName, varname } = options;
+  if (patch.boxes.has(id) || Object.hasOwn(registration, id))
+    return fail(
+      "PARAMETER_CONFLICT",
+      `Parameter/object ID ${id} already exists`,
+    );
+  for (const box of patch.boxes.values())
+    if (box.passthrough.varname === varname)
+      return fail(
+        "PARAMETER_CONFLICT",
+        `Scripting name ${varname} already exists`,
+      );
+  for (const entry of Object.values(registration))
+    if (Array.isArray(entry) && (entry[0] === name || entry[1] === shortName))
+      return fail(
+        "PARAMETER_CONFLICT",
+        "Parameter long and short names must be unique",
+      );
+  for (const { patch: scope } of walkPatch(patch))
+    for (const box of scope.boxes.values()) {
+      const saved = box.passthrough.saved_attribute_attributes;
+      if (
+        record(saved) &&
+        record(saved.valueof) &&
+        (saved.valueof.parameter_longname === name ||
+          saved.valueof.parameter_shortname === shortName)
+      )
+        return fail(
+          "PARAMETER_CONFLICT",
+          "Parameter long and short names must be unique across embedded patchers",
+        );
+    }
+}
+function presentationRect(
+  value: NonNullable<LiveParameterOptions["presentation"]>,
+): Rect {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    [value.x, value.y, value.width, value.height].some(
+      (number) => typeof number !== "number" || !Number.isFinite(number),
+    ) ||
+    value.width <= 0 ||
+    value.height <= 0
+  )
+    return fail(
+      "INVALID_PARAMETER",
+      "Expected finite presentation coordinates and positive dimensions",
+    );
+  return [value.x, value.y, value.width, value.height];
+}
+function automaticPresentation(patch: NormalizedPatch): Rect {
+  const occupied = [...patch.boxes.values()]
+    .filter((box) => box.passthrough.presentation === 1)
+    .map((box) => {
+      const rect = box.passthrough.presentation_rect;
+      return Array.isArray(rect) &&
+        rect.length === 4 &&
+        rect.every(
+          (value) => typeof value === "number" && Number.isFinite(value),
+        ) &&
+        rect[2] > 0 &&
+        rect[3] > 0
+        ? (rect as unknown as Rect)
+        : box.patchingRect;
+    })
+    .sort((a, b) => a[0] - b[0]);
+  let x = 20;
+  for (const [left, top, width, height] of occupied) {
+    if (top < 68 && top + height > 20 && left < x + 80 && left + width + 20 > x)
+      x = left + width + 20;
+  }
+  return [x, 20, 60, 48];
+}
+function parameterBox(
+  options: ResolvedParameter,
+  rect: Rect,
+  count: number,
+): BoxSpec {
+  const { name, shortName, varname, min, max, default: initial } = options;
+  return {
+    maxclass: "live.dial",
+    numinlets: 1,
+    numoutlets: 2,
+    patchingRect: [
+      options.at?.[0] ?? 240 + count * 80,
+      options.at?.[1] ?? 50,
+      41,
+      48,
+    ],
+    passthrough: {
+      outlettype: ["", "float"],
+      parameter_enable: 1,
+      varname,
+      presentation: 1,
+      presentation_rect: rect,
+      // Native Max 9.1.5 float attributes; defaults omitted in the same way Max saves them.
+      saved_attribute_attributes: {
+        valueof: {
+          parameter_longname: name,
+          parameter_shortname: shortName,
+          parameter_type: 0,
+          parameter_unitstyle: 1,
+          parameter_modmode: 0,
+          parameter_initial_enable: 1,
+          parameter_initial: [initial],
+          ...(min === 0 ? {} : { parameter_mmin: min }),
+          ...(max === 127 ? {} : { parameter_mmax: max }),
+        },
+      },
+    },
+  };
+}
+/** Adds an automated/stored float live.dial to the root patcher, owning the returned device and container. */
+export function addLiveParameter(
+  device: AmxdDevice,
+  input: LiveParameterOptions,
+): AmxdDevice {
+  const options = validateOptions(input);
+  let editor = PatchEditor.fromNormalized(device.patch);
+  validateDeviceProject(device);
+  const meta = device.patch.patcherMeta.passthrough;
+  const registration = parameters(meta.parameters);
+  assertNoConflicts(device.patch, registration, options);
+  const rect =
+    options.presentation === undefined
+      ? automaticPresentation(device.patch)
+      : presentationRect(options.presentation);
   const layout =
     options.presentation === undefined
       ? {
           devicewidth: Math.max(
             typeof meta.devicewidth === "number" ? meta.devicewidth : 320,
-            80 * (count + 1),
+            rect[0] + rect[2],
           ),
         }
       : {};
-  const rect: Rect = [
-    presentation.x,
-    presentation.y,
-    presentation.width,
-    presentation.height,
-  ];
-  editor = editor.addBox(
-    {
-      maxclass: "live.dial",
-      numinlets: 1,
-      numoutlets: 2,
-      patchingRect: [
-        options.at?.[0] ?? 240 + count * 80,
-        options.at?.[1] ?? 50,
-        41,
-        48,
-      ],
+  editor = editor
+    .addBox(
+      parameterBox(
+        options,
+        rect,
+        Object.values(registration).filter(Array.isArray).length,
+      ),
+      options.id,
+    )
+    .withMetadata({
       passthrough: {
-        outlettype: ["", "float"],
-        parameter_enable: 1,
-        varname,
-        presentation: 1,
-        presentation_rect: rect,
-        // Native Max 9.1.5 float attributes; defaults omitted in the same way Max saves them.
-        saved_attribute_attributes: {
-          valueof: {
-            parameter_longname: name,
-            parameter_shortname: shortName,
-            parameter_type: 0,
-            parameter_unitstyle: 1,
-            parameter_modmode: 0,
-            parameter_initial_enable: 1,
-            parameter_initial: [initial],
-            ...(min === 0 ? {} : { parameter_mmin: min }),
-            ...(max === 127 ? {} : { parameter_mmax: max }),
-          },
+        ...meta,
+        ...layout,
+        parameters: {
+          ...registration,
+          [options.id]: [options.name, options.shortName, 0],
         },
       },
-    },
-    id,
-  );
-  editor = editor.withMetadata({
-    passthrough: {
-      ...meta,
-      ...layout,
-      parameters: { ...registration, [id]: [name, shortName, 0] },
-    },
-  });
+    });
   editor.validateOrThrow();
-  return { ...owned, patch: editor.toNormalized() };
+  return {
+    type: device.type,
+    patch: editor.toNormalized(),
+    ...(device.container === undefined
+      ? {}
+      : { container: structuredClone(device.container) }),
+  };
 }
