@@ -12,6 +12,7 @@ export function writeAtomicFile(
   const target = path.resolve(filePath);
   let fd: number | undefined;
   let temp: string | undefined;
+  let committed = false;
   const cleanupErrors: unknown[] = [];
   try {
     let mode = 0o600;
@@ -54,6 +55,7 @@ export function writeAtomicFile(
       // An atomic hard-link install cannot clobber a destination created after lstat.
       // Both paths share a directory/filesystem; the fully written inode is visible at once.
       fs.linkSync(temp, target);
+      committed = true;
       fs.unlinkSync(temp);
       temp = undefined;
       return;
@@ -97,8 +99,14 @@ export function writeAtomicFile(
         cleanupErrors.push(e);
       }
     }
+    if (committed && cleanupErrors.length === 0) return;
     throw new MaxpatWriteError(
-      "Atomic patch replacement failed",
+      committed
+        ? "Destination created, but temporary-file cleanup failed"
+        : (cause as NodeJS.ErrnoException)?.code === "EEXIST" &&
+            options?.overwrite === false
+          ? "Destination already exists; use --force to replace it (library: overwrite: true)"
+          : "Atomic patch replacement failed",
       target,
       cleanupErrors.length
         ? new AggregateError(
