@@ -90,7 +90,7 @@ it("finds JavaScript, deduplicates repeated references and includes adjacent att
   const d = discover(input);
   const script = d.dependencies.find((d) => d.reference === "tempo.js");
   expect(script).toMatchObject({ status: "resolved", destination: "tempo.js" });
-  expect(script!.sources.length).toBe(2);
+  expect(script!.sources).toHaveLength(2);
   expect(
     d.dependencies.some(
       (d) => d.reference === "LICENSE.tsln" && d.status === "resolved",
@@ -293,7 +293,7 @@ it("creates a verified manifest and leaves sources byte-identical while discardi
   expect(JSON.stringify(manifest)).not.toContain(file(""));
   for (const item of manifest.files) {
     const bytes = fs.readFileSync(file("nested/release/" + item.path));
-    expect(bytes.length).toBe(item.size);
+    expect(bytes).toHaveLength(item.size);
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(item.sha256);
   }
 });
@@ -367,6 +367,21 @@ it("rolls back failed publication and restores replaced output", () => {
     /move failure/,
   );
   expect(fs.readFileSync(file("out/old"), "utf8")).toBe("preserve");
+  expect(fs.readdirSync(dir).some((n) => n.startsWith("."))).toBe(false);
+});
+it("preserves old output and cleans an empty backup if the backup move fails", () => {
+  const { file, dir, device } = setup();
+  const input = device("live.thisdevice");
+  fs.mkdirSync(file("out"));
+  fs.writeFileSync(file("out/old"), "keep");
+  vi.mocked(fs.renameSync).mockImplementation((...args) => {
+    if (String(args[0]) === file("out")) throw new Error("backup move failure");
+    return actual.renameSync(...args);
+  });
+  expect(() => writePackage(discover(input), file("out"), true)).toThrow(
+    /backup move failure/,
+  );
+  expect(fs.readFileSync(file("out/old"), "utf8")).toBe("keep");
   expect(fs.readdirSync(dir).some((n) => n.startsWith("."))).toBe(false);
 });
 it("does not overwrite or remove an output created concurrently by someone else", () => {

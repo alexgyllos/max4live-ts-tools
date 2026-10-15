@@ -22,7 +22,7 @@ export function dependencies(
   const ok = discovery.dependencies.every((d) => d.status === "resolved");
   const summary = discovery.dependencies
     .map(
-      (d) => `${d.reference}  ${d.status}${d.reason ? ` — ${d.reason}` : ""}`,
+      (d) => `${d.reference}  ${d.status}${d.reason ? " — " + d.reason : ""}`,
     )
     .join("\n");
   const base = {
