@@ -353,3 +353,60 @@ it("has command-specific help, preserves option ordering and respects --", () =>
   ).toBe(2);
   expect(output).not.toContain("schemaVersion");
 });
+
+it("reports bounded byte-based summaries for large opaque chunks", () => {
+  const { file } = setup();
+  const device = readAmxd(file("audio.amxd"));
+  const payload = Buffer.alloc(2 * 1024 * 1024, 97);
+  device.container!.chunks = [
+    ...device.container!.chunks,
+    { tag: "blob", data: payload },
+  ];
+  writeAmxd(file("large-a.amxd"), device);
+  payload[payload.length - 1] = 98;
+  writeAmxd(file("large-b.amxd"), device);
+  const result = cli(
+    "diff",
+    file("large-a.amxd"),
+    file("large-b.amxd"),
+    "--include-container",
+  );
+  expect(result.status).toBe(1);
+  expect(result.value.changes).toEqual([]);
+  expect(result.value.container.changes).toEqual([
+    {
+      kind: "updated",
+      path: "/container/chunks/2",
+      before: {
+        index: 2,
+        tag: "blob",
+        size: payload.length,
+        sha256Prefix: expect.stringMatching(/^[0-9a-f]{16}$/),
+      },
+      after: {
+        index: 2,
+        tag: "blob",
+        size: payload.length,
+        sha256Prefix: expect.stringMatching(/^[0-9a-f]{16}$/),
+      },
+    },
+  ]);
+  expect(result.value.container.changes[0].before.sha256Prefix).not.toBe(
+    result.value.container.changes[0].after.sha256Prefix,
+  );
+  expect(JSON.stringify(result.value).length).toBeLessThan(1000);
+  let text = "";
+  expect(
+    runCli(
+      [
+        "diff",
+        file("large-a.amxd"),
+        file("large-b.amxd"),
+        "--include-container",
+      ],
+      "test",
+      { stdout: (t) => (text += t), stderr: (t) => (text += t) },
+    ),
+  ).toBe(1);
+  expect(text.length).toBeLessThan(1000);
+});

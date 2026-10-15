@@ -108,7 +108,9 @@ requiring built-in I/O objects or resolving external abstractions.
 Diff compares patcher structure by default: an unmodified device equals its
 extracted `.maxpat`. `diff a.amxd b.amxd --include-container` also compares device
 type, container version, metadata, binary chunks and their order. JSON keeps
-patcher `changes` and optional `container.changes` separate; embedded JSON
+patcher `changes` and optional `container.changes` separate. Opaque chunks compare
+actual bytes and report index, tag, size and a short SHA-256 prefix, without dumping
+binary data. Embedded JSON
 whitespace is ignored and patcher payload changes are counted once.
 
 `validate` and `check` are aliases. Format accepts `.maxpat` only and checks without
