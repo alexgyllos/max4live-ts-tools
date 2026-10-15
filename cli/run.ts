@@ -7,6 +7,7 @@ import { format } from "./commands/format.js";
 import { diff } from "./commands/diff.js";
 import { amxd } from "./commands/amxd.js";
 import { create } from "./commands/create.js";
+import { dependencies } from "./commands/package.js";
 export type { CliIO } from "./output.js";
 /** Dispatcher used by the installed binary. Output is one JSON document or text. */
 export function runCli(args: string[], version: string, io: CliIO): number {
@@ -27,7 +28,11 @@ export function runCli(args: string[], version: string, io: CliIO): number {
         options.template !== undefined ||
         write ||
         includeContainer ||
-        deviceType !== undefined
+        deviceType !== undefined ||
+        options.roots.length ||
+        options.assets.length ||
+        options.output !== undefined ||
+        options.dryRun
       )
         throw new Error("--version takes no command/files");
       output(io, json, { version }, version + "\n");
@@ -35,13 +40,23 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     }
     if (
       command !== "create" &&
-      (options.force ||
-        options.name !== undefined ||
-        options.template !== undefined)
+      (options.name !== undefined || options.template !== undefined)
+    )
+      throw new Error("--name and --template are only supported by create");
+    if (options.force && !["create", "package"].includes(command))
+      throw new Error("--force is only supported by create or package");
+    if (
+      (options.roots.length || options.assets.length) &&
+      !["deps", "package"].includes(command)
     )
       throw new Error(
-        "--force, --name and --template are only supported by create",
+        "--root and --asset are only supported by deps or package",
       );
+    if (
+      (options.output !== undefined || options.dryRun) &&
+      command !== "package"
+    )
+      throw new Error("--output and --dry-run are only supported by package");
     if (write && command !== "format")
       throw new Error("--write is only supported by format");
     if (includeContainer && command !== "diff")
@@ -49,6 +64,8 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     if (deviceType !== undefined && command !== "amxd")
       throw new Error("--type is only supported by amxd build");
     if (command === "create") return create(files, options, io);
+    if (command === "deps" || command === "package")
+      return dependencies(command, files, options, io);
     if (command === "amxd") return amxd(files, deviceType, json, io);
     if (!["inspect", "validate", "check", "format", "diff"].includes(command))
       throw new Error(

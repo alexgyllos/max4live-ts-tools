@@ -177,6 +177,31 @@ Root.encodeAmxd(device,{overwrite:false});`,
     readFileSync(join(consumer, good)),
   );
   const checks = [
+    [["deps", "audio.amxd", "--json"], 0, "stdout"],
+    [["package", "audio.amxd", "--dry-run", "--json"], 0, "stdout"],
+    [
+      ["package", "audio.amxd", "--output", "distribution", "--json"],
+      0,
+      "stdout",
+    ],
+    [
+      ["package", "audio.amxd", "--output", "distribution", "--json"],
+      2,
+      "stderr",
+    ],
+    [
+      [
+        "package",
+        "audio.amxd",
+        "--output",
+        "distribution",
+        "--force",
+        "--json",
+      ],
+      0,
+      "stdout",
+    ],
+    [["check", "distribution/audio.amxd", "--json"], 0, "stdout"],
     [["--help"], 0, "stdout"],
     [["--version"], 0, "stdout"],
     [["validate", good], 0, "stdout"],
@@ -346,6 +371,18 @@ Root.encodeAmxd(device,{overwrite:false});`,
       } else if (resultJson.command === "format") {
         assert.equal(typeof resultJson.changed, "boolean");
         assert.equal(typeof resultJson.written, "boolean");
+      } else if (
+        resultJson.command === "deps" ||
+        resultJson.command === "package"
+      ) {
+        assert.equal(resultJson.ok, true);
+        assert(Array.isArray(resultJson.dependencies));
+        assert(Array.isArray(resultJson.limitations));
+        if (resultJson.command === "package") {
+          assert.equal(resultJson.manifest.format, "unfrozen-companion-files");
+          assert(Array.isArray(resultJson.manifest.files));
+          assert.equal(typeof resultJson.written, "boolean");
+        }
       } else if (resultJson.command === "diff" && !resultJson.help) {
         assert.equal(resultJson.mode, "structural");
         assert.equal(typeof resultJson.equal, "boolean");
