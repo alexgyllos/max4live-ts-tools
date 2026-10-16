@@ -9,6 +9,7 @@ export type CliArgs = {
   name?: string;
   template?: string;
   force: boolean;
+  bare: boolean;
   roots: string[];
   assets: string[];
   output?: string;
@@ -24,6 +25,7 @@ export function parseArgs(args: string[]): CliArgs {
     json: wantsJson(args),
     write: false,
     force: false,
+    bare: false,
     includeContainer: false,
     help: false,
     version: false,
@@ -63,7 +65,8 @@ export function parseArgs(args: string[]): CliArgs {
       )
         throw new Error(`${arg} requires one value`);
       result[key] = args[++i];
-    } else if (arg === "--force") result.force = true;
+    } else if (arg === "--bare") result.bare = true;
+    else if (arg === "--force") result.force = true;
     else if (arg === "--type") {
       if (
         result.deviceType !== undefined ||

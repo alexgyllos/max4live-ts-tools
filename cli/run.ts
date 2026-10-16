@@ -24,6 +24,7 @@ export function runCli(args: string[], version: string, io: CliIO): number {
       if (
         options.positional.length ||
         options.force ||
+        options.bare ||
         options.name !== undefined ||
         options.template !== undefined ||
         write ||
@@ -40,9 +41,13 @@ export function runCli(args: string[], version: string, io: CliIO): number {
     }
     if (
       command !== "create" &&
-      (options.name !== undefined || options.template !== undefined)
+      (options.name !== undefined ||
+        options.template !== undefined ||
+        options.bare)
     )
-      throw new Error("--name and --template are only supported by create");
+      throw new Error(
+        "--name, --template and --bare are only supported by create",
+      );
     if (options.force && !["create", "package"].includes(command))
       throw new Error("--force is only supported by create or package");
     if (

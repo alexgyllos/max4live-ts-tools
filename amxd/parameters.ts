@@ -3,6 +3,11 @@ import { walkPatch } from "../nested.js";
 import { assertJson } from "../validate/json.js";
 import { MaxpatEditError } from "../errors.js";
 import { validateDeviceProject } from "./validate.js";
+import {
+  applyNativePresentation,
+  hasNativePresentation,
+  AUTO_RECT,
+} from "./presentation.js";
 import type { AmxdDevice } from "./codec.js";
 import type { BoxSpec, NormalizedPatch, Rect } from "../types.js";
 
@@ -241,6 +246,7 @@ function parameterBox(
       varname,
       presentation: 1,
       presentation_rect: rect,
+      ...(options.presentation === undefined ? { [AUTO_RECT]: rect } : {}),
       // Native Max 9.1.5 float attributes; defaults omitted in the same way Max saves them.
       saved_attribute_attributes: {
         valueof: {
@@ -302,11 +308,14 @@ export function addLiveParameter(
       },
     });
   editor.validateOrThrow();
-  return {
+  const result: AmxdDevice = {
     type: device.type,
     patch: editor.toNormalized(),
     ...(device.container === undefined
       ? {}
       : { container: structuredClone(device.container) }),
   };
+  return hasNativePresentation(device.patch)
+    ? applyNativePresentation(result)
+    : result;
 }

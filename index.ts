@@ -72,4 +72,5 @@ export type {
 export { readAmxd, writeAmxd } from "./amxd/files.js";
 export { createMaxForLiveDevice } from "./amxd/template.js";
 export { addLiveParameter } from "./amxd/parameters.js";
+export { applyNativePresentation } from "./amxd/presentation.js";
 export type { LiveParameterOptions } from "./amxd/parameters.js";

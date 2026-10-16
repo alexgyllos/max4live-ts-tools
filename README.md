@@ -35,6 +35,44 @@ the published `0.2.0` package. See
 for source-build instructions and limitations. Frozen/encrypted devices remain
 outside this toolkit's parser/editor support.
 
+## Native presentation
+
+The reviewed source candidate styles new CLI devices with native Live labels,
+Large dials and a theme-aware divider. This is not yet included in npm `0.2.0`.
+
+```sh
+maxpat create audio MyEffect.amxd
+maxpat create audio MyEffect.amxd --bare
+```
+
+`--bare` retains the original scaffold. Programmatic generation stays unchanged;
+apply the presentation explicitly:
+
+```ts
+const device = applyNativePresentation(
+  addLiveParameter(
+    createMaxForLiveDevice({ type: "audio", name: "My Effect" }),
+    {
+      id: "gain",
+      name: "Gain",
+      type: "float",
+      min: 0,
+      max: 1,
+      default: 0.5,
+    },
+  ),
+);
+writeAmxd("My Effect.amxd", device);
+```
+
+Import these functions from `max4live-ts-tools`. Automatic dials expand horizontally
+inside Live's 169px height; explicit coordinates and existing user UI are respected.
+Native control colours follow Live, and the divider uses a saved Live theme colour
+reference. There are no rendering dependencies. Styling preserves processing,
+registered parameters and container chunks; reading/editing does not restyle devices.
+After a native Max save, saved control positions are treated as authored coordinates.
+See the [Stereo Gain example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/stereo-gain).
+
 ## Create a patcher
 
 ```ts
@@ -139,6 +177,11 @@ read/edit/rewrite/reload were tested in Live 12.4.6 with Max 9.1.5.
 This API supports automated/stored float dials only, with finite ranges and an
 initial value. Max may normalise UI dimensions (vertical dials use a 48px height).
 See the [parameter example](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/parameters.ts).
+
+Stereo Gain in Live 12.4.6, using the same native colours in both appearances:
+
+![Stereo Gain in dark Live appearance](https://raw.githubusercontent.com/alexgyllos/max4live-ts-tools/main/docs/images/stereo-gain-dark.png)
+![Stereo Gain in light Live appearance](https://raw.githubusercontent.com/alexgyllos/max4live-ts-tools/main/docs/images/stereo-gain-light.png)
 
 ## CLI
 
