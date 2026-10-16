@@ -1,0 +1,29 @@
+{
+  "name": "typed-live-tempo-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p build/tsconfig.json",
+    "build": "npm run typecheck && node build.mjs",
+    "watch": "node build.mjs --watch",
+    "check": "maxpat check \"js/Live Tempo.amxd\" && maxpat deps \"js/Live Tempo.amxd\"",
+    "package": "npm run check && maxpat package \"js/Live Tempo.amxd\" --output \"release/Live Tempo\" --force",
+    "test": "npm run build && npm run package && node --test test/verify.mjs"
+  },
+  "dependencies": {
+    "max4live-ts-tools": "0.2.0"
+  },
+  "devDependencies": {
+    "@tsln/live-object": "0.4.1",
+    "@tsln/lom-types": "0.1.0",
+    "@tsln/max-types": "0.2.0",
+    "@types/node": "22.20.5",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  }
+}
