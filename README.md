@@ -206,14 +206,38 @@ duplicates. Rewiring removes/adds a cord; relative reorderings appear at `lineOr
 Added/updated paths use new indices; removed paths use original indices. These are
 change descriptions, not JSON Patch operations.
 
-## Typed Max runtime example
+## TypeScript device workflow
 
-The [standalone Live Tempo example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/live-tempo)
-combines the public toolkit API with `@tsln/live-object`, Max runtime typings and
-`@tsln/create-max` bundling conventions. Follow its candidate-install instructions,
-then run `npm run build`, `npm run check` and `npm run package` from that directory.
-The development device and bundled `device.js` are in `examples/live-tempo/js/`;
-`release/Live Tempo/` contains the companion-file distribution and licences.
+[max4live-ts-tools](https://github.com/alexgyllos/max4live-ts-tools) and
+[tsln-lab/max-packages](https://github.com/tsln-lab/max-packages) handle complementary parts of device development:
+
+| Capability                                              | Project                                   |
+| ------------------------------------------------------- | ----------------------------------------- |
+| TypeScript inside Max                                   | `@tsln/create-max` conventions            |
+| Typed LiveAPI interactions                              | `@tsln/live-object` and `@tsln/lom-types` |
+| Max runtime API types                                   | `@tsln/max-types`                         |
+| Device graph generation, validation and structural diff | `max4live-ts-tools`                       |
+| Dependency discovery and companion-file packaging       | `max4live-ts-tools`                       |
+| `.amxd` binary encoding                                 | `@tsln/amxd`, used by this toolkit        |
+
+Start with the [standalone Live Tempo example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/live-tempo).
+Follow its locally packed candidate installation instructions, then:
+
+```sh
+npm run build
+npm run check
+npm run package
+npm run watch  # optional source rebuilds
+```
+
+The public API generates the stereo device beside its compiled runtime in
+`examples/live-tempo/js/`; packaging produces `release/Live Tempo/` with the script,
+licences and integrity manifest. Native Live 12.4.6 / Max 9.1.5 tests include tempo
+observation, development files made unavailable, stereo capture and save/reopen.
+See the [integration guide and upstream audit](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/tsln-integration.md)
+for the environment boundary, scaffold reproduction and Max 9.2 qualification gap.
+The [typed native fixture tool](https://github.com/alexgyllos/max4live-ts-tools/tree/main/tools/native-fixtures)
+is development-only and keeps ordinary CI independent of Max.
 
 ## File behaviour and development
 
