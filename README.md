@@ -35,6 +35,47 @@ the published `0.2.0` package. See
 for source-build instructions and limitations. Frozen/encrypted devices remain
 outside this toolkit's parser/editor support.
 
+## Native presentation
+
+The reviewed source candidate groups new CLI device controls in a native dark
+inset, using theme-aware colours and Large dials without an internal title. This is not yet included in npm `0.2.0`.
+
+```sh
+maxpat create audio MyEffect.amxd
+maxpat create audio MyEffect.amxd --bare
+```
+
+`--bare` retains the original scaffold. Programmatic generation stays unchanged;
+apply the presentation explicitly:
+
+```ts
+const device = applyNativePresentation(
+  addLiveParameter(
+    createMaxForLiveDevice({ type: "audio", name: "My Effect" }),
+    {
+      id: "gain",
+      name: "Gain",
+      type: "float",
+      min: 0,
+      max: 1,
+      default: 0.5,
+    },
+  ),
+);
+writeAmxd("My Effect.amxd", device);
+```
+
+Import these functions from `max4live-ts-tools`. Automatic dials expand horizontally
+inside Live's 169px height; explicit coordinates and existing user UI are respected.
+Set `appearance: "vertical" | "panel" | "large"` in `addLiveParameter()` to select
+a verified native dial (48/80/63px high). Omitted appearances keep the original
+programmatic default; automatic native styling uses Large.
+Native control colours follow Live, and the inset uses saved Live theme colour
+references. There are no rendering dependencies. Styling preserves processing,
+registered parameters and container chunks; reading/editing does not restyle devices.
+After a native Max save, saved control positions are treated as authored coordinates.
+See the [Stereo Gain example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/stereo-gain).
+
 ## Create a patcher
 
 ```ts
@@ -139,6 +180,17 @@ read/edit/rewrite/reload were tested in Live 12.4.6 with Max 9.1.5.
 This API supports automated/stored float dials only, with finite ranges and an
 initial value. Max may normalise UI dimensions (vertical dials use a 48px height).
 See the [parameter example](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/parameters.ts).
+
+Stereo Gain and the [native dial comparison](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/dial-appearances.ts)
+in Live 12.4.6 / Max 9.1.5, beside stock Chorus-Ensemble:
+
+![Dark appearance](https://raw.githubusercontent.com/alexgyllos/max4live-ts-tools/main/docs/images/native-inset-dark.png)
+![Light appearance](https://raw.githubusercontent.com/alexgyllos/max4live-ts-tools/main/docs/images/native-inset-light.png)
+
+The comparison's three parameters demonstrate presentation only; audio passes through.
+Run `npm run examples` from a source checkout, then load
+`examples/generated/Native Dial Appearances.amxd`.
+See [native qualification and before/after captures](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/native-presentation.md).
 
 ## CLI
 
