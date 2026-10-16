@@ -208,21 +208,12 @@ change descriptions, not JSON Patch operations.
 
 ## Typed Max runtime example
 
-```sh
-npm ci
-npm run example:live-tempo
-```
-
-Load `examples/generated/live-tempo/Live Tempo.amxd` on an audio track. It preserves
-stereo audio and displays Live's tempo, including changes. Keep `tempo.js` beside
-the device or in Max's search path; this unfrozen device is not self-contained.
-Max's native freezing can package dependencies for distribution, but frozen devices
-cannot be edited with this codec.
-
-The separate Max-only configuration uses `@tsln/max-types` and `@tsln/lom-types`.
-The script bundles `@tsln/live-object`, accessing Live only after `live.thisdevice`
-initialises the device. Node library code imports none of these runtime globals.
-See the [@tsln packages and scaffolder](https://github.com/tsln-lab/max-packages).
+The [standalone Live Tempo example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/live-tempo)
+combines the public toolkit API with `@tsln/live-object`, Max runtime typings and
+`@tsln/create-max` bundling conventions. Follow its candidate-install instructions,
+then run `npm run build`, `npm run check` and `npm run package` from that directory.
+The development device and bundled `device.js` are in `examples/live-tempo/js/`;
+`release/Live Tempo/` contains the companion-file distribution and licences.
 
 ## File behaviour and development
 

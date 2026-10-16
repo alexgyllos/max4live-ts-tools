@@ -8,7 +8,8 @@
     "moduleDetection": "force",
     "strict": true,
     "skipLibCheck": false,
-    "noEmit": true
+    "noEmit": true,
+    "noImplicitThis": false
   },
-  "include": ["tempo.ts"]
+  "include": ["src/*.ts"]
 }

@@ -487,6 +487,33 @@ Root.encodeAmxd(device,{overwrite:false});`,
   console.log(
     "Standalone Stereo Gain consumer built and tested against the packed candidate",
   );
+  const tempo = join(temp, "typed live tempo");
+  cpSync("examples/live-tempo", tempo, {
+    recursive: true,
+    filter: (path) =>
+      !/(^|[/\\])(node_modules|js|release|\.build)([/\\]|$)/.test(path),
+  });
+  requireSuccess(
+    npm(["ci", "--ignore-scripts", "--no-audit", "--no-fund"], tempo),
+  );
+  requireSuccess(
+    npm(
+      [
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--no-save",
+        "--package-lock=false",
+        join(temp, pack.filename),
+      ],
+      tempo,
+    ),
+  );
+  requireSuccess(npm(["test"], tempo));
+  console.log(
+    "Standalone typed Live Tempo consumer built, validated and packaged against the packed candidate",
+  );
 } catch (error) {
   verificationError = error;
   throw error;
