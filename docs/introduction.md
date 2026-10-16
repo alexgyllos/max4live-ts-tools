@@ -20,7 +20,7 @@ Try the attached device or build it yourself:
 The library is on [npm](https://www.npmjs.com/package/max4live-ts-tools).
 I'd welcome reports about real device compatibility, API friction and workflows
 that are still awkward. Frozen/encrypted device editing remains unsupported;
-dependency packaging is separate work under review for a later release.
+companion-file dependency packaging is available in the reviewed source candidate.
 
 ## tsln-lab/max-packages maintainers
 
@@ -34,8 +34,8 @@ and Max for Live devices. Our supported `.amxd` codec builds on your
 shows offline generation using standard Max objects. Our
 [Live Tempo example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/live-tempo)
 shows the complementary workflow: `@tsln/max-types`, `@tsln/lom-types` and
-`@tsln/live-object` for code that runs inside Max, bundled beside an offline-built
-device. The two projects serve different parts of the same development process.
+`@tsln/live-object` for code that runs inside Max, compiled and packaged beside an offline-built
+device through npm scripts. The two projects serve different parts of the same development process.
 
 Potential collaboration could include shared rights-cleared container fixtures,
 round-trip interoperability checks, and dependency metadata conventions. I'd be
