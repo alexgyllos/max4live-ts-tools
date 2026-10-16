@@ -30,8 +30,12 @@ colours. Above them, two overlaid native `function` objects show a stationary
 preview of two seconds of the left/right modulation, starting at fixed phases
 90 degrees apart. Rate changes the number of cycles and Depth changes their
 height; zero Depth produces flat lines. The preview redraws only on initialisation
-and Rate/Depth changes. It has no scrolling history, timer or DSP input and stays
-visible when playback stops. The audio LFOs continue to run independently.
+and Rate/Depth changes. A native
+[`speedlim`](https://docs.cycling74.com/reference/speedlim/) coalesces redraws to
+at most 20 per second on Max's low-priority queue, including a pending final update
+after automation stops. It has no scrolling history, periodic clock or DSP input
+and stays visible when playback stops. The audio LFOs receive every parameter
+change and continue to run independently.
 
 See Cycling '74's [tapin~](https://docs.cycling74.com/reference/tapin~/),
 [tapout~](https://docs.cycling74.com/reference/tapout~/),
@@ -76,3 +80,13 @@ The stationary display revision preserves that measured DSP graph. Its fixed
 phase, control response and native save are checked separately in Live. Tests do not establish
 first-vector initialisation timing, perceptual quality for every source, or other
 Live/Max versions. Qualification tools and recordings are not device dependencies.
+
+A separate rapid-automation check swept Rate across 0.1–5 Hz at 4 Hz and Depth
+across 0–8 ms at 7 Hz for 30 seconds, with 100 automation breakpoints per second
+per control. Before coalescing, Live's sampled CPU meter reached 63–78%; with the
+50 ms low-priority redraw limiter it stayed at a sampled 1% in the same isolated
+Set. Mix remained editable during the sweep. The internal 48 kHz stereo capture
+contained no all-zero frames or repeated blocks through the stress interval.
+Native-saved curves each contained 201 points matching the final 1.2 Hz / 4 ms
+values within 0.000003 ms. These are observations on this machine, not a CPU budget
+or a hardware-output dropout guarantee.

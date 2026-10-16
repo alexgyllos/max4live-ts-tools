@@ -75,7 +75,7 @@ test("keeps left/right delay buffers separate and uses offset LFOs without feedb
   assert.equal(p.boxes.get("left-delay").passthrough.text, "tapout~ 15");
   assert.equal(p.boxes.get("right-delay").passthrough.text, "tapout~ 15");
 });
-test("stationary preview redraws from controls and has no signal or clock input", () => {
+test("stationary preview coalesces control redraws without throttling audio", () => {
   const p = createSimpleChorus().patch;
   const has = (source, outlet, destination, inlet) =>
     p.lines.some(
@@ -102,6 +102,20 @@ test("stationary preview redraws from controls and has no signal or clock input"
   }
   assert(has("rate", 0, "display-rate", 0));
   assert(has("depth", 0, "display-depth", 0));
+  assert.equal(
+    p.boxes.get("display-limit").passthrough.text,
+    "speedlim 50 @defer 1",
+  );
+  for (const control of ["rate", "depth"]) {
+    assert(has(`display-${control}`, 0, "display-limit", 0));
+    assert(!has(`display-${control}`, 0, "display-redraw", 0));
+    assert(has(control, 0, `${control}-pack`, 0));
+    assert(has(`${control}-pack`, 0, `${control}-signal`, 0));
+  }
+  assert.deepEqual(
+    p.lines.filter((l) => l.sourceId === "display-limit").map((l) => l.destId),
+    ["display-redraw"],
+  );
   assert(has("display-redraw", 1, "display-clear", 0));
   assert(has("display-redraw", 0, "display-points", 0));
   assert.equal(p.boxes.get("display-points").passthrough.text, "uzi 201");

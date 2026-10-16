@@ -132,9 +132,11 @@ export function createSimpleChorus() {
   connect("rate-signal", 0, "phase", 0);
   connect("phase", 0, "right-phase", 0);
   connect("mix-signal", 0, "dry-level", 0);
-  // Redraw a fixed two-second preview only when Rate or Depth changes.
+  // Coalesce control-driven redraws on the low-priority queue. speedlim keeps
+  // the pending final bang, which reads the latest Rate/Depth cold inputs.
   object("display-rate", "t b f", 1, 2, 700, 700);
   object("display-depth", "t b f", 1, 2, 850, 700);
+  object("display-limit", "speedlim 50 @defer 1", 2, 1, 550, 740);
   object("display-redraw", "t b b", 1, 2, 700, 740);
   object("display-points", "uzi 201", 2, 3, 700, 780);
   editor = editor.addBox(
@@ -149,8 +151,9 @@ export function createSimpleChorus() {
   );
   connect("rate", 0, "display-rate", 0);
   connect("depth", 0, "display-depth", 0);
-  connect("display-rate", 0, "display-redraw", 0);
-  connect("display-depth", 0, "display-redraw", 0);
+  connect("display-rate", 0, "display-limit", 0);
+  connect("display-depth", 0, "display-limit", 0);
+  connect("display-limit", 0, "display-redraw", 0);
   connect("display-redraw", 1, "display-clear", 0);
   connect("display-redraw", 0, "display-points", 0);
   editor = editor.addBox(
