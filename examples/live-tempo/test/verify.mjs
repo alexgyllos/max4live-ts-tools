@@ -3,10 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
-import vm from "node:vm";
 import { readAmxd, encodeAmxd, validateGraph } from "max4live-ts-tools";
 
-const runtime = readFileSync("js/device.js", "utf8");
 const cli = "node_modules/max4live-ts-tools/dist/cli/index.js";
 const run = (...args) =>
   spawnSync(process.execPath, args, { encoding: "utf8" });
@@ -40,54 +38,9 @@ test("public builder is deterministic and preserves stereo/init wiring", () => {
   );
   assert(!before.includes(Buffer.from(process.cwd())));
 });
-test("bundled Max handlers execute without Node/DOM and own one observer", () => {
-  const apis = [],
-    outputs = [];
-  let tempo = 120;
-  class LiveAPI {
-    constructor(callback) {
-      this.callback = callback;
-      this.id = 1;
-      this.type = "Song";
-      this.property = "";
-      apis.push(this);
-    }
-    get(name) {
-      assert.equal(name, "tempo");
-      return [tempo];
-    }
-  }
-  const context = {
-    inlets: 1,
-    outlets: 1,
-    autowatch: 0,
-    LiveAPI,
-    outlet: (port, value) => outputs.push([port, value]),
-  };
-  vm.runInNewContext(runtime, context);
-  assert.equal(typeof context.bang, "function");
-  assert.equal(typeof context.notifydeleted, "function");
-  assert.equal(apis.length, 0, "No LiveAPI calls before live.thisdevice");
-  const active = () => apis.filter((a) => a.property === "tempo");
-  for (let i = 0; i < 5; i++) {
-    context.bang();
-    assert.equal(active().length, 1);
-    tempo = 121 + i;
-    const before = outputs.length;
-    for (const api of active()) api.callback(["tempo", tempo]);
-    assert.equal(outputs.length, before + 1);
-    assert.deepEqual(outputs.at(-1), [0, tempo]);
-  }
-  context.notifydeleted();
-  context.notifydeleted();
-  assert.equal(active().length, 0);
-  const before = outputs.length;
-  for (const api of apis) api.callback?.(["tempo", 200]);
-  assert.equal(
-    outputs.length,
-    before,
-    "Deleted observers ignore stale callbacks",
-  );
+test("bundled Max handlers remain top-level and own one observer", () => {
+  const result = run("test/runtime.mjs");
+  assert.equal(result.status, 0, result.stderr);
 });
 test("CLI discovers, packages and verifies every companion-file hash in isolation", () => {
   const dependencies = run(cli, "deps", "js/Live Tempo.amxd", "--json");
@@ -103,8 +56,10 @@ test("CLI discovers, packages and verifies every companion-file hash in isolatio
   );
   assert.equal(manifest.format, "unfrozen-companion-files");
   assert.deepEqual(
-    manifest.files.map((f) => f.path).sort(),
-    ["LICENSE", "LICENSE.tsln", "Live Tempo.amxd", "device.js"].sort(),
+    manifest.files.map((f) => f.path).sort((a, b) => a.localeCompare(b, "en")),
+    ["LICENSE", "LICENSE.tsln", "Live Tempo.amxd", "device.js"].sort((a, b) =>
+      a.localeCompare(b, "en"),
+    ),
   );
   for (const f of manifest.files) {
     const bytes = readFileSync(`release/Live Tempo/${f.path}`);
@@ -164,13 +119,21 @@ test(
       log += bytes;
     });
     const closed = new Promise((resolve) => child.once("close", resolve));
-    const until = async (predicate) => {
-      const end = Date.now() + 8000;
-      while (!predicate()) {
-        assert(child.exitCode === null && Date.now() < end, log);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-    };
+    const until = (predicate) =>
+      new Promise((resolve, reject) => {
+        const end = Date.now() + 8000;
+        const timer = setInterval(() => {
+          try {
+            if (predicate()) {
+              clearInterval(timer);
+              resolve();
+            } else assert(child.exitCode === null && Date.now() < end, log);
+          } catch (error) {
+            clearInterval(timer);
+            reject(error);
+          }
+        }, 50);
+      });
     try {
       await until(() => log.includes("build finished"));
       writeFileSync(
