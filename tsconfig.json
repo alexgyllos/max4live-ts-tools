@@ -16,6 +16,7 @@
     "node_modules",
     "dist",
     "examples/live-tempo",
-    "examples/stereo-gain"
+    "examples/stereo-gain",
+    "tools/native-fixtures"
   ]
 }

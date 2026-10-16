@@ -46,8 +46,9 @@
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
     "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js && node .examples/examples/devices.js && node .examples/examples/parameters.js",
-    "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check",
-    "example:live-tempo": "npm --prefix examples/live-tempo run build"
+    "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check && npm run fixtures:build",
+    "example:live-tempo": "npm --prefix examples/live-tempo run build",
+    "fixtures:build": "npm run build && tsc -p tools/native-fixtures/tsconfig.json && esbuild tools/native-fixtures/generate.ts --bundle --format=cjs --platform=neutral --conditions=browser --main-fields=main,module --target=es2022 --tree-shaking=false --outfile=.native-fixtures/generate.js && node tools/native-fixtures/build-host.mjs"
   },
   "dependencies": {
     "@tsln/amxd": "0.1.0",
@@ -58,6 +59,7 @@
     "esbuild": "0.28.2",
     "oxfmt": "0.73.0",
     "typescript": "7.0.2",
-    "vitest": "5.0.4"
+    "vitest": "5.0.4",
+    "@tsln/max-types": "0.2.0"
   }
 }
