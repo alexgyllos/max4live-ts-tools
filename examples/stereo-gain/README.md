@@ -74,8 +74,9 @@ tools, not dependencies of Stereo Gain or the ordinary test suite.
 ### Native presentation qualification — 2026-10-16
 
 The styled candidate was tested separately in Live 12.4.6 / Max 9.1.5. The Large
-Gain dial, native Text / Icon labels and Control Border divider follow Live's
-appearance without separate palettes. Real screenshots:
+Gain dial and reusable dark inset follow Live's appearance without separate
+palettes. Native LCD foreground references keep labels, values and the needle
+readable against LCD Background in both appearances. Real screenshots:
 
 ![Dark appearance](../../docs/images/stereo-gain-dark.png)
 ![Light appearance](../../docs/images/stereo-gain-light.png)
@@ -98,3 +99,13 @@ initialisation is covered by structural tests, not these recordings.
 
 Live 11.3.43 additionally loaded and visually rendered styled Stereo Gain; full
 DSP/automation qualification was performed in Live 12, not Live 11.
+
+The inset revision removes the internal AUDIO EFFECT heading and separator;
+Stereo Gain still has exactly one registered parameter and the same processing,
+smoothing and initialisation graph. [Before/after and the three-dial comparison](../../docs/native-presentation.md).
+
+The revised inset candidate was requalified in Live 12.4.6 / Max 9.1.5 with native
+save/reload, zero Gain recall and recorded 0/1/0 automation replay. Fresh capture
+peaks were 0.100006/0.049988 at Gain 0.5, 0.200012/0.100006 at 1, and exact silence
+at 0. The native-saved processing graph and parameter semantics match the prior
+fixture exactly; the inset and palette introduce no DSP changes.

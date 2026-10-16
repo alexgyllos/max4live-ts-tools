@@ -36,7 +36,7 @@ const style = (count: number) =>
   applyNativePresentation(
     addParameters(createMaxForLiveDevice({ type: "audio" }), count),
   );
-it("uses the saved Large dial height and native dynamic divider metadata", () => {
+it("uses verified native dial heights and a dynamic noninteractive inset", () => {
   expect(
     [...native.patch.boxes.values()]
       .filter((b) => b.maxclass === "live.dial")
@@ -47,21 +47,21 @@ it("uses the saved Large dial height and native dynamic divider metadata", () =>
     [0, 48],
   ]);
   const actual = style(1);
-  const dial = dials(actual)[0];
-  expect(dial.passthrough.appearance).toBe(3);
-  expect(rect(dial)[3]).toBe(63);
-  const divider = [...actual.patch.boxes.values()].find(
-    (b) => b.maxclass === "panel",
-  )!;
-  const saved = native.patch.boxes.get("obj-6")!;
-  expect(divider.passthrough.saved_attribute_attributes).toEqual(
-    saved.passthrough.saved_attribute_attributes,
+  expect(dials(actual)[0].passthrough.appearance).toBe(3);
+  expect(rect(dials(actual)[0])).toEqual([28, 48, 104, 63]);
+  const panel = actual.patch.boxes.get("__maxpat_native_inset")!;
+  const saved = native.patch.boxes.get("obj-4")!;
+  expect(panel.passthrough.saved_attribute_attributes).toMatchObject(
+    saved.passthrough.saved_attribute_attributes as object,
   );
-  expect(divider.passthrough.background).toBe(saved.passthrough.background);
-  expect(rect(divider)[3]).toBe(rect(saved)[3]);
-  expect(divider.passthrough.ignoreclick).toBe(1);
-  expect(divider.passthrough.bgcolor).toBeUndefined();
-  expect(divider.passthrough.style).toBeUndefined();
+  expect(panel.passthrough).toMatchObject({
+    background: 1,
+    ignoreclick: 1,
+    border: 1,
+    rounded: 4,
+  });
+  expect(panel.passthrough.bgcolor).toBeUndefined();
+  expect(panel.passthrough.style).toBeUndefined();
 });
 it.each([0, 1, 2, 4, 8, 12])(
   "lays out %i controls deterministically within Live's height",
@@ -105,29 +105,23 @@ it.each(["audio", "midi", "instrument"] as AmxdDeviceType[])(
     );
     expect(result.patch.patcherMeta.passthrough.title).toBe("Device");
     expect(
-      [...result.patch.boxes.values()].some(
-        (b) =>
-          b.passthrough.text ===
-          (type === "instrument"
-            ? "Silent scaffold"
-            : type === "midi"
-              ? "MIDI pass-through"
-              : "Stereo pass-through"),
+      [...result.patch.boxes.values()].filter(
+        (b) => b.maxclass === "live.comment",
       ),
-    ).toBe(true);
+    ).toHaveLength(0);
   },
 );
-it("preserves the sine graph and describes its actual function", () => {
+it("preserves the sine graph without decorative captions", () => {
   const source = withSineGraph(createMaxForLiveDevice({ type: "instrument" }));
   const result = applyNativePresentation(source);
   expect(result.patch.lines).toEqual(source.patch.lines);
   for (const [id, box] of source.patch.boxes)
     expect(result.patch.boxes.get(id)).toEqual(box);
   expect(
-    [...result.patch.boxes.values()].some(
-      (b) => b.passthrough.text === "MIDI to audio",
+    [...result.patch.boxes.values()].filter(
+      (b) => b.maxclass === "live.comment",
     ),
-  ).toBe(true);
+  ).toHaveLength(0);
 });
 it("supports either incremental order without decorations consuming layout slots", () => {
   const base = createMaxForLiveDevice({ type: "audio" });
@@ -139,7 +133,7 @@ it("supports either incremental order without decorations consuming layout slots
   );
   expect(
     b.patch.boxes.get("__maxpat_native_status")?.passthrough.presentation,
-  ).toBe(0);
+  ).toBeUndefined();
   expect(encodeAmxd(applyNativePresentation(b))).toEqual(encodeAmxd(b));
 });
 it("makes room for long native short names without changing registration or values", () => {
@@ -166,7 +160,7 @@ it("makes room for long native short names without changing registration or valu
   for (const old of dials(source))
     expect(
       result.patch.boxes.get(old.id)?.passthrough.saved_attribute_attributes,
-    ).toEqual(old.passthrough.saved_attribute_attributes);
+    ).toMatchObject(old.passthrough.saved_attribute_attributes as object);
 });
 function userObject(
   d: AmxdDevice,
@@ -213,7 +207,7 @@ it("respects user UI, explicit geometry, manual moves and decorative background 
   const result = applyNativePresentation(source);
   for (const id of ["label", "background", "p0"])
     expect(result.patch.boxes.get(id)).toEqual(source.patch.boxes.get(id));
-  expect(rect(result.patch.boxes.get("p1")!)).toEqual([232, 48, 104, 63]);
+  expect(rect(result.patch.boxes.get("p1")!)[0]).toBeGreaterThanOrEqual(376);
   const moved = {
     ...result,
     patch: PatchEditor.fromNormalized(result.patch)
@@ -226,7 +220,7 @@ it("respects user UI, explicit geometry, manual moves and decorative background 
     450,
   );
 });
-it("preserves explicit additions on styled devices and avoids their header region", () => {
+it("preserves explicit additions on styled devices", () => {
   const result = addLiveParameter(style(0), {
     ...parameter(0),
     presentation: { x: 12, y: 12, width: 60, height: 48 },
@@ -234,7 +228,7 @@ it("preserves explicit additions on styled devices and avoids their header regio
   expect(rect(result.patch.boxes.get("p0")!)).toEqual([12, 12, 60, 48]);
   expect(
     result.patch.boxes.get("__maxpat_native_header")?.passthrough.presentation,
-  ).toBe(0);
+  ).toBeUndefined();
   const before = structuredClone(result);
   expect(() =>
     addLiveParameter(result, {
@@ -254,14 +248,17 @@ it("never treats names resembling generated IDs as ownership", () => {
   expect(result.patch.boxes.get("__maxpat_native_header")).toEqual(
     source.patch.boxes.get("__maxpat_native_header"),
   );
-  expect(result.patch.boxes.has("__maxpat_native_header_2")).toBe(true);
+  expect(result.patch.boxes.has("__maxpat_native_header_2")).toBe(false);
   expect(encodeAmxd(applyNativePresentation(result))).toEqual(
     encodeAmxd(result),
   );
 });
 it("does not overwrite a generated label that a developer has connected", () => {
-  const styled = style(0),
-    id = "__maxpat_native_header";
+  const id = "__maxpat_native_header";
+  const styled = userObject(style(0), id, [8, 8, 120, 18], "live.comment", {
+    text: "AUDIO EFFECT",
+    annotation: "max4live-ts-tools/native/v1/header",
+  });
   const connected = {
     ...styled,
     patch: PatchEditor.fromNormalized(styled.patch)
@@ -271,7 +268,7 @@ it("does not overwrite a generated label that a developer has connected", () => 
   const result = applyNativePresentation(connected);
   expect(result.patch.lines).toEqual(connected.patch.lines);
   expect(result.patch.boxes.get(id)).toEqual(connected.patch.boxes.get(id));
-  expect(result.patch.boxes.has(id + "_2")).toBe(true);
+  expect(result.patch.boxes.has(id + "_2")).toBe(false);
 });
 it("owns immutable binary revisions and preserves unknown chunk data and ordering", () => {
   const source = decodeAmxd(
@@ -307,7 +304,9 @@ it("restyles a genuine Max-saved Stereo Gain without duplicating or moving nativ
   const saved = decodeAmxd(bytes);
   expect(encodeAmxd(saved)).toEqual(new Uint8Array(bytes));
   const styled = applyNativePresentation(saved);
-  expect(styled.patch.boxes.size).toBe(saved.patch.boxes.size);
+  expect(styled.patch.boxes.size).toBe(saved.patch.boxes.size - 1);
+  expect(styled.patch.boxes.has("__maxpat_native_header")).toBe(false);
+  expect(styled.patch.boxes.has("__maxpat_native_separator")).toBe(false);
   expect(styled.patch.lines).toEqual(saved.patch.lines);
   expect(styled.patch.boxes.get("gain")).toEqual(saved.patch.boxes.get("gain"));
   expect(dials(styled)).toHaveLength(1);
@@ -338,4 +337,235 @@ it("reserves room for long wide-glyph native labels", () => {
     }),
   );
   expect(rect(dials(d)[0])[2]).toBeGreaterThanOrEqual(216);
+});
+
+it("selects native appearances with actual heights and retains saved/custom appearances", () => {
+  let device = createMaxForLiveDevice({ type: "audio" });
+  for (const [i, appearance] of ["vertical", "large", "panel"].entries())
+    device = addLiveParameter(device, {
+      ...parameter(i),
+      appearance: appearance as "vertical" | "large" | "panel",
+    });
+  const result = applyNativePresentation(device);
+  expect(
+    dials(result).map((b) => [b.passthrough.appearance, rect(b)[3]]),
+  ).toEqual([
+    [0, 48],
+    [3, 63],
+    [2, 80],
+  ]);
+  for (const box of dials(result))
+    expect(rect(box)[1] + rect(box)[3]).toBeLessThanOrEqual(169);
+  const custom = {
+    ...device,
+    patch: PatchEditor.fromNormalized(device.patch)
+      .updateBox("p1", { passthrough: { appearance: 4 } })
+      .toNormalized(),
+  };
+  expect(applyNativePresentation(custom).patch.boxes.get("p1")).toEqual(
+    custom.patch.boxes.get("p1"),
+  );
+  const explicit = addLiveParameter(result, {
+    ...parameter(4),
+    appearance: "panel",
+    presentation: { x: 380, y: 12, width: 90, height: 80 },
+  });
+  expect(rect(explicit.patch.boxes.get("p4")!)).toEqual([380, 12, 90, 80]);
+  expect(explicit.patch.boxes.get("p4")!.passthrough.appearance).toBe(2);
+});
+it.each(["tiny", 3, null, ["large"], "__proto__"])(
+  "rejects invalid appearance %j",
+  (appearance) => {
+    expect(() =>
+      addLiveParameter(createMaxForLiveDevice({ type: "audio" }), {
+        ...parameter(0),
+        appearance,
+      } as never),
+    ).toThrow(/appearance/);
+  },
+);
+it("removes only obsolete decorative labels, preserving repurposed and annotated user UI", () => {
+  const saved = decodeAmxd(
+    readFileSync(
+      new URL(
+        "./fixtures/stereo-gain-native-presentation-max-9.1.5.amxd",
+        import.meta.url,
+      ),
+    ),
+  );
+  const base = applyNativePresentation(saved);
+  expect(
+    [...base.patch.boxes.values()].some(
+      (b) => b.passthrough.text === "AUDIO EFFECT",
+    ),
+  ).toBe(false);
+  for (const extra of [
+    { text: "User display" },
+    { text: "AUDIO EFFECT", varname: "functional_label" },
+    { text: "AUDIO EFFECT", param_connect: "other::value" },
+  ]) {
+    const d = userObject(base, "legacy", [8, 8, 120, 18], "live.comment", {
+      annotation: "max4live-ts-tools/native/v1/header",
+      ...extra,
+    });
+    expect(applyNativePresentation(d).patch.boxes.get("legacy")).toEqual(
+      d.patch.boxes.get("legacy"),
+    );
+  }
+  const collision = userObject(base, "__maxpat_native_inset_2", [0, 0, 50, 12]);
+  expect(
+    applyNativePresentation(collision).patch.boxes.get(
+      "__maxpat_native_inset_2",
+    ),
+  ).toEqual(collision.patch.boxes.get("__maxpat_native_inset_2"));
+});
+it("ignores background panels in bare parameter placement", () => {
+  const base = createMaxForLiveDevice({ type: "audio" });
+  const decorated = userObject(base, "background", [0, 0, 320, 160], "panel", {
+    background: 1,
+  });
+  expect(
+    rect(addLiveParameter(base, parameter(0)).patch.boxes.get("p0")!),
+  ).toEqual(
+    rect(addLiveParameter(decorated, parameter(0)).patch.boxes.get("p0")!),
+  );
+});
+
+it("places a bare panel dial around a short obstacle below the vertical dial row", () => {
+  const source = userObject(
+    createMaxForLiveDevice({ type: "audio" }),
+    "label",
+    [20, 80, 60, 18],
+  );
+  const result = addLiveParameter(source, {
+    ...parameter(0),
+    appearance: "panel",
+  });
+  expect(rect(result.patch.boxes.get("p0")!)).toEqual([100, 20, 60, 80]);
+});
+
+it("checks retained inset bounds and actual native height even with explicit short rectangles", () => {
+  for (const bounds of [
+    [8, 150, 144, 112],
+    [-8, 24, 144, 112],
+  ]) {
+    const original = style(1);
+    const edited = {
+      ...original,
+      patch: PatchEditor.fromNormalized(original.patch)
+        .updateBox("__maxpat_native_inset", {
+          passthrough: { presentation_rect: bounds },
+        })
+        .toNormalized(),
+    };
+    expect(() => applyNativePresentation(edited)).toThrow(/169px/);
+  }
+  expect(() =>
+    addLiveParameter(style(0), {
+      ...parameter(0),
+      appearance: "panel",
+      presentation: { x: 20, y: 100, width: 80, height: 48 },
+    }),
+  ).toThrow(/169px/);
+});
+
+it("keeps the native-saved backdrop or rejects an extension across authored UI", () => {
+  const initial = style(1);
+  const dial = dials(initial)[0];
+  const nativeSaved = {
+    ...initial,
+    patch: PatchEditor.fromNormalized(initial.patch)
+      .updateBox(dial.id, { passthrough: { _maxpat_auto_presentation: null } })
+      .toNormalized(),
+  };
+  const extended = addLiveParameter(nativeSaved, parameter(1));
+  const panel = rect(extended.patch.boxes.get("__maxpat_native_inset")!);
+  expect(panel[0]).toBeLessThanOrEqual(rect(dial)[0]);
+  expect(panel[0] + panel[2]).toBeGreaterThanOrEqual(
+    rect(dial)[0] + rect(dial)[2],
+  );
+  const withLabel = userObject(nativeSaved, "label", [140, 48, 80, 18]);
+  const before = structuredClone(withLabel);
+  expect(() => addLiveParameter(withLabel, parameter(1))).toThrow(
+    /explicit parameter geometry/,
+  );
+  expect(withLabel).toEqual(before);
+});
+
+it.each([
+  "stereo-gain-inset-max-9.1.5.amxd",
+  "dial-appearances-inset-max-9.1.5.amxd",
+])(
+  "round-trips native inset save %s and preserves its controls on restyling",
+  (name) => {
+    const bytes = readFileSync(new URL(`./fixtures/${name}`, import.meta.url));
+    const saved = decodeAmxd(bytes);
+    expect(encodeAmxd(saved)).toEqual(new Uint8Array(bytes));
+    const result = applyNativePresentation(saved);
+    expect(dials(result)).toEqual(dials(saved));
+    expect(result.patch.lines).toEqual(saved.patch.lines);
+    const panel = result.patch.boxes.get("__maxpat_native_inset")!;
+    expect(panel.passthrough).toMatchObject({
+      rounded: 4,
+      border: 1,
+      background: 1,
+      saved_attribute_attributes: {
+        bgfillcolor: { expression: "themecolor.live_lcd_bg" },
+        bordercolor: { expression: "themecolor.live_lcd_frame" },
+      },
+    });
+    expect(encodeAmxd(applyNativePresentation(result))).toEqual(
+      encodeAmxd(result),
+    );
+    if (name.startsWith("dial-"))
+      expect(
+        dials(saved).map((b) => [b.passthrough.appearance ?? 0, rect(b)[3]]),
+      ).toEqual([
+        [0, 48],
+        [3, 63],
+        [2, 80],
+      ]);
+  },
+);
+it("keeps native Stereo Gain processing and parameter semantics unchanged", () => {
+  const original = decodeAmxd(
+    readFileSync(
+      new URL(
+        "./fixtures/stereo-gain-native-presentation-max-9.1.5.amxd",
+        import.meta.url,
+      ),
+    ),
+  );
+  const revised = decodeAmxd(
+    readFileSync(
+      new URL("./fixtures/stereo-gain-inset-max-9.1.5.amxd", import.meta.url),
+    ),
+  );
+  expect(revised.patch.lines).toEqual(original.patch.lines);
+  for (const [id, box] of original.patch.boxes) {
+    if (id.startsWith("__maxpat_native_")) continue;
+    const actual = revised.patch.boxes.get(id)!;
+    if (id === "gain")
+      expect(actual.passthrough.saved_attribute_attributes).toMatchObject(
+        box.passthrough.saved_attribute_attributes as object,
+      );
+    else expect(actual).toEqual(box);
+  }
+  expect(revised.patch.patcherMeta.passthrough.parameters).toEqual(
+    original.patch.patcherMeta.passthrough.parameters,
+  );
+});
+
+it("reserves effective native height for undersized authored Panel rectangles", () => {
+  const base = addLiveParameter(createMaxForLiveDevice({ type: "audio" }), {
+    ...parameter(0),
+    appearance: "panel",
+    presentation: { x: 20, y: 0, width: 80, height: 1 },
+  });
+  expect(rect(base.patch.boxes.get("p0")!)).toEqual([20, 0, 80, 1]);
+  const bare = addLiveParameter(base, parameter(1));
+  expect(rect(bare.patch.boxes.get("p1")!)[0]).toBeGreaterThanOrEqual(120);
+  const styled = applyNativePresentation(bare);
+  expect(rect(styled.patch.boxes.get("p1")!)[0]).toBeGreaterThanOrEqual(116);
+  expect(styled.patch.boxes.get("p0")).toEqual(base.patch.boxes.get("p0"));
 });

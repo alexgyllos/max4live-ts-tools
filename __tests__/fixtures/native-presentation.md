@@ -33,3 +33,20 @@ The same native save/reopen exercise also covered the styled audio, MIDI, silent
 instrument and sine CLI templates and an eight-parameter device in Live 12.4.6.
 The two small fixtures above retain the representative metadata used by tests;
 the qualification Sets and capture probes are not shipped or required at runtime.
+
+## Inset revision — 2026-10-16
+
+`stereo-gain-inset-max-9.1.5.amxd` and `dial-appearances-inset-max-9.1.5.amxd`
+were generated with the revised helper, opened in Live 12.4.6, saved in its
+Max 9.1.5 editor and returned to Live. Earlier fixtures above remain unchanged.
+Native save retained panel `border: 1`, `rounded: 4`, background layer and dynamic
+`bgfillcolor: themecolor.live_lcd_bg` / `bordercolor: themecolor.live_lcd_frame`.
+Max omits `ignoreclick: 1` on the saved background panel; restyling restores it.
+
+Automatic dials use native dynamic `textcolor` / `activeneedlecolor` references to
+`themecolor.live_lcd_control_fg`, and `activefgdialcolor` to
+`themecolor.live_lcd_control_fg_zombie`. Panel appearance additionally saves native
+LCD Background and LCD Line references for its panel/border. These expressions,
+not Max's captured RGBA snapshots, drive theme changes. The comparison's saved
+heights remain Vertical 48, Large 63 and Panel 80. Parameter `valueof` dictionaries
+and Stereo Gain's entire processing graph match the previous native fixture.
