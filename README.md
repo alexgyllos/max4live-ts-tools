@@ -21,7 +21,7 @@ npx --no-install maxpat check MyEffect.amxd
 For a functional effect built entirely from TypeScript, try the
 [Stereo Gain example](https://github.com/alexgyllos/max4live-ts-tools/blob/main/examples/stereo-gain/README.md),
 including its prebuilt device, standalone build and measured Live/Max results.
-For a modulated-delay effect with Rate, Depth, Mix and an animated LFO display,
+For a modulated-delay effect with Rate, Depth, Mix and a stationary LFO preview,
 load the prebuilt [Simple Chorus](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/simple-chorus)
 or rebuild it from its TypeScript source.
 

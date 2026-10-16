@@ -75,28 +75,50 @@ test("keeps left/right delay buffers separate and uses offset LFOs without feedb
   assert.equal(p.boxes.get("left-delay").passthrough.text, "tapout~ 15");
   assert.equal(p.boxes.get("right-delay").passthrough.text, "tapout~ 15");
 });
-test("native waveform display observes the actual depth-scaled LFOs without feeding audio", () => {
+test("stationary preview redraws from controls and has no signal or clock input", () => {
   const p = createSimpleChorus().patch;
+  const has = (source, outlet, destination, inlet) =>
+    p.lines.some(
+      (l) =>
+        l.sourceId === source &&
+        l.sourceOutlet === outlet &&
+        l.destId === destination &&
+        l.destInlet === inlet,
+    );
   for (const name of ["left", "right"]) {
     const display = p.boxes.get(`${name}-display`);
-    assert.equal(display.maxclass, "live.scope~");
-    assert.equal(display.passthrough.interval, 33);
+    assert.equal(display.maxclass, "function");
+    assert.equal(display.passthrough.domain, 2000);
     assert.deepEqual(display.passthrough.range, [-10, 10]);
-    assert(
-      p.lines.some(
-        (l) => l.sourceId === `${name}-depth` && l.destId === `${name}-display`,
-      ),
-    );
-    assert(
-      p.lines.some(
-        (l) =>
-          l.sourceId === "display-samples" && l.destId === `${name}-display`,
-      ),
-    );
+    assert.equal(display.passthrough.ignoreclick, 1);
+    assert(has("display-rate", 1, `${name}-preview`, 1));
+    assert(has("display-depth", 1, `${name}-preview`, 2));
+    assert(has(`${name}-index`, 1, `${name}-preview`, 0));
+    assert(has(`${name}-index`, 0, `${name}-x`, 0));
+    assert(has(`${name}-preview`, 0, `${name}-point`, 1));
+    assert(has(`${name}-x`, 0, `${name}-point`, 0));
+    assert(has("display-clear", 0, `${name}-display`, 0));
     assert(!p.lines.some((l) => l.sourceId === `${name}-display`));
   }
-  assert.equal(p.boxes.get("display-dsp").passthrough.text, "dspstate~");
-  assert.equal(p.boxes.get("display-duration").passthrough.text, "* 2.");
+  assert(has("rate", 0, "display-rate", 0));
+  assert(has("depth", 0, "display-depth", 0));
+  assert(has("display-redraw", 1, "display-clear", 0));
+  assert(has("display-redraw", 0, "display-points", 0));
+  assert.equal(p.boxes.get("display-points").passthrough.text, "uzi 201");
+  assert(
+    ![...p.boxes.values()].some((b) =>
+      ["live.scope~", "dspstate~", "metro", "qmetro"].includes(
+        (b.passthrough.text ?? b.maxclass).split(" ")[0],
+      ),
+    ),
+  );
+  assert(
+    !p.lines.some(
+      (l) =>
+        (l.sourceId === "phase" || l.sourceId.endsWith("-depth")) &&
+        l.destId.endsWith("-display"),
+    ),
+  );
   assert.equal(
     Object.values(p.patcherMeta.passthrough.parameters).filter(Array.isArray)
       .length,

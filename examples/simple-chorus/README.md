@@ -26,12 +26,12 @@ triggers the recalled controls at zero ramp time, then restores smoothing; it do
 not overwrite recalled values with defaults.
 
 Three standard `live.dial` controls retain their default appearance and theme
-colours. Above them, two overlaid native `live.scope~` objects display two seconds
-of the actual depth-scaled left/right LFO signals, refreshed about 30 times per
-second. Rate changes the waves' speed and Depth changes their height; zero Depth
-produces flat lines. The display observes the modulation and does not feed audio.
-Its history length follows the DSP sample rate. The traces update while Live
-processes the device; they can pause when Live suspends audio processing.
+colours. Above them, two overlaid native `function` objects show a stationary
+preview of two seconds of the left/right modulation, starting at fixed phases
+90 degrees apart. Rate changes the number of cycles and Depth changes their
+height; zero Depth produces flat lines. The preview redraws only on initialisation
+and Rate/Depth changes. It has no scrolling history, timer or DSP input and stays
+visible when playback stops. The audio LFOs continue to run independently.
 
 See Cycling '74's [tapin~](https://docs.cycling74.com/reference/tapin~/),
 [tapout~](https://docs.cycling74.com/reference/tapout~/),
@@ -72,7 +72,7 @@ Frequency deviations match a 3 ms sinusoidally varying delay. The measured stere
 modulation phase difference was 90 degrees at both rates. Average carriers remained
 440 / 880 Hz. Native Edit in Max/save preserved object port counts and patchlines;
 Rate 1.2 Hz, Depth 4 ms and Mix 40% survived closing and reopening a saved Live Set.
-The subsequent display revision observes the same DSP graph; its motion, control
-response and save/reopen are checked separately in Live. Tests do not establish
+The stationary display revision preserves that measured DSP graph. Its fixed
+phase, control response and native save are checked separately in Live. Tests do not establish
 first-vector initialisation timing, perceptual quality for every source, or other
 Live/Max versions. Qualification tools and recordings are not device dependencies.

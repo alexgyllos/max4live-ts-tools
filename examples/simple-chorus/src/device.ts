@@ -47,7 +47,7 @@ export function createSimpleChorus() {
     .disconnect(["input", 0], ["output", 0])
     .disconnect(["input", 1], ["output", 1])
     .withMetadata({
-      rect: [0, 0, 1050, 880],
+      rect: [0, 0, 1050, 960],
       passthrough: { openinpresentation: 1, devicewidth: 232 },
     });
   const object = (
@@ -132,13 +132,27 @@ export function createSimpleChorus() {
   connect("rate-signal", 0, "phase", 0);
   connect("phase", 0, "right-phase", 0);
   connect("mix-signal", 0, "dry-level", 0);
-  // Two seconds of actual modulation history, independent of the audio sample rate.
-  object("display-dsp", "dspstate~", 1, 4, 700, 720);
-  object("display-duration", "* 2.", 2, 1, 700, 760);
-  object("display-samples", "prepend samples", 1, 1, 700, 800);
-  connect("ready", 0, "display-dsp", 0);
-  connect("display-dsp", 1, "display-duration", 0);
-  connect("display-duration", 0, "display-samples", 0);
+  // Redraw a fixed two-second preview only when Rate or Depth changes.
+  object("display-rate", "t b f", 1, 2, 700, 700);
+  object("display-depth", "t b f", 1, 2, 850, 700);
+  object("display-redraw", "t b b", 1, 2, 700, 740);
+  object("display-points", "uzi 201", 2, 3, 700, 780);
+  editor = editor.addBox(
+    {
+      maxclass: "message",
+      numinlets: 2,
+      numoutlets: 1,
+      patchingRect: [850, 740, 60, 22],
+      passthrough: { text: "clear" },
+    },
+    "display-clear",
+  );
+  connect("rate", 0, "display-rate", 0);
+  connect("depth", 0, "display-depth", 0);
+  connect("display-rate", 0, "display-redraw", 0);
+  connect("display-depth", 0, "display-redraw", 0);
+  connect("display-redraw", 1, "display-clear", 0);
+  connect("display-redraw", 0, "display-points", 0);
   editor = editor.addBox(
     {
       maxclass: "panel",
@@ -187,32 +201,52 @@ export function createSimpleChorus() {
     connect(`${name}-sum`, 0, "output", channel);
     editor = editor.addBox(
       {
-        maxclass: "live.scope~",
-        numinlets: 2,
-        numoutlets: 1,
+        maxclass: "function",
+        numinlets: 1,
+        numoutlets: 4,
         patchingRect: [20 + channel * 250, 750, 200, 70],
         passthrough: {
           presentation: 1,
           presentation_rect: [16, 16, 200, 72],
           ignoreclick: 1,
-          active: 1,
-          mode: 0,
-          samples: 96000,
-          interval: 33,
+          parameter_enable: 0,
+          domain: 2000,
           range: [-10, 10],
           grid: 0,
-          smooth: 2,
-          line_width: 1.5,
-          decay_time: 0,
+          mode: 0,
+          border: 0,
+          pointsize: 1,
+          linethickness: 1.5,
+          legend: 0,
+          pointcolor: [0, 0, 0, 0],
+          textcolor: [0, 0, 0, 0],
           bgcolor: [0, 0, 0, 0],
-          activebgcolor: [0, 0, 0, 0],
-          activelinecolor: channel ? [0.19, 0.76, 0.82, 1] : [1, 0.69, 0.35, 1],
+          linecolor: channel ? [0.19, 0.76, 0.82, 1] : [1, 0.69, 0.35, 1],
         },
       },
       `${name}-display`,
     );
-    connect(`${name}-depth`, 0, `${name}-display`, 0);
-    connect("display-samples", 0, `${name}-display`, 0);
+    // Calculate Y first, then send X to pack's hot inlet.
+    object(`${name}-index`, "t i i", 1, 2, x, 820);
+    object(
+      `${name}-preview`,
+      `expr cos(($i1-1)*0.06283185307179586*$f2+${(channel * Math.PI) / 2})*$f3`,
+      3,
+      1,
+      x,
+      850,
+    );
+    object(`${name}-x`, "expr ($i1-1)*10.", 1, 1, x + 150, 820);
+    object(`${name}-point`, "pack 0. 0.", 2, 1, x + 150, 890);
+    connect("display-rate", 1, `${name}-preview`, 1);
+    connect("display-depth", 1, `${name}-preview`, 2);
+    connect("display-points", 2, `${name}-index`, 0);
+    connect(`${name}-index`, 1, `${name}-preview`, 0);
+    connect(`${name}-index`, 0, `${name}-x`, 0);
+    connect(`${name}-preview`, 0, `${name}-point`, 1);
+    connect(`${name}-x`, 0, `${name}-point`, 0);
+    connect(`${name}-point`, 0, `${name}-display`, 0);
+    connect("display-clear", 0, `${name}-display`, 0);
   }
   editor.validateOrThrow();
   return { ...device, patch: editor.toNormalized() };
