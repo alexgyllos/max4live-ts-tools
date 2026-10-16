@@ -1,4 +1,10 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "dist", "__tests__", "examples"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "__tests__",
+    "examples",
+    "tools/native-fixtures"
+  ]
 }
