@@ -4,7 +4,7 @@ const commands: Record<string, string> = {
   package:
     "Usage: maxpat package <file.amxd> --output <directory> [--root <directory>] [--asset <file>] [--force] [--dry-run] [--json]\nCopies a validated unfrozen device and statically resolved companion files with preserved relative paths. Adjacent licence/notice files are included. --asset includes additional files (repeatable). --force replaces the whole output directory. --dry-run writes nothing and needs no --output. This does not Freeze a device.\n",
   create:
-    "Usage: maxpat create <audio|midi|instrument> <output.amxd> [options]\n--name <name> defaults to the output basename.\n--force permits atomic replacement; existing files are refused by default.\n--template sine creates a playable instrument; the default instrument is a silent scaffold.\n",
+    "Usage: maxpat create <audio|midi|instrument> <output.amxd> [options]\nNative Live presentation is applied by default; --bare retains the original unstyled scaffold.\n--name <name> defaults to the output basename.\n--force permits atomic replacement; existing files are refused by default.\n--template sine creates a playable instrument; the default instrument is a silent scaffold.\n",
   inspect:
     "Usage: maxpat inspect <file.maxpat|file.amxd> [--json]\nShow counts, validation status and device metadata.\n",
   validate:
