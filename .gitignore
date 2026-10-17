@@ -6,3 +6,4 @@ coverage/
 .env*
 .examples/
 examples/generated/
+.native-fixtures/
