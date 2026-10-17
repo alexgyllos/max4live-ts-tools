@@ -113,6 +113,20 @@ it("reports missing and dynamic references separately without guessing global Ma
   expect(cli("package", input, "--output", file("release")).status).toBe(1);
   expect(fs.existsSync(file("release"))).toBe(false);
 });
+it.each(["/", "/~", "!/", "!/~"])(
+  "packages a device using the native %s division operator without a file dependency",
+  (operator) => {
+    const { file, device } = setup();
+    const input = device(`${operator} 100.`);
+    expect(discover(input).dependencies).toEqual([]);
+    const output = file("release");
+    expect(cli("package", input, "--output", output).status).toBe(0);
+    expect(
+      readAmxd(join(output, "Device.amxd")).patch.boxes.get("script")!
+        .passthrough.text,
+    ).toBe(`${operator} 100.`);
+  },
+);
 it("handles quoted script names and extensionless scripts", () => {
   const { file, device } = setup();
   fs.writeFileSync(file("my script.js"), "");

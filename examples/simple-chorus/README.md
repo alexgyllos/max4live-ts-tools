@@ -44,8 +44,10 @@ See Cycling '74's [tapin~](https://docs.cycling74.com/reference/tapin~/),
 
 ## Build from TypeScript
 
-Use Node 22.12+ or Node 24. This example builds against the published `0.2.0`
-package without unreleased APIs.
+Use Node 24 with the pinned published `0.2.0` package. To use the 0.3.0 source
+on Node 22.12+ within Node 22, or Node 24, follow the shared
+[source build instructions](../../CONTRIBUTING.md#build-the-examples-from-source).
+The device builder uses the same public APIs in both versions.
 
 ```sh
 cd examples/simple-chorus

@@ -5,23 +5,16 @@ A standalone version of the existing Live Tempo example, following the real
 CommonJS, ES2022 and disabled tree shaking. Max handlers are deliberately not
 exported. Node generation code has its own TypeScript context under `build/`.
 
-## Use the reviewed source candidate
+## Build and package
 
-The manifest pins the existing registry release `max4live-ts-tools@0.2.0`. The
-packaging CLI in this example requires the newer source candidate; it has not
-been published. Test the example against a locally packed candidate:
+Follow the [source build instructions](../../CONTRIBUTING.md#build-the-examples-from-source),
+selecting `examples/live-tempo`. Packaging requires toolkit 0.3.0; the manifest
+currently pins the published 0.2.0 baseline. Then use:
 
 ```sh
-# Repository root, Node 22.12+ or Node 24
-npm ci
-npm pack
-cd examples/live-tempo
-npm ci
-npm install --no-save --package-lock=false ../../max4live-ts-tools-0.2.0.tgz
 npm run build
 npm run check
 npm run package
-npm test
 ```
 
 `build` typechecks both environments, compiles `src/device.ts` to `js/device.js`,
