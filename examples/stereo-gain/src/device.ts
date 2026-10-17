@@ -1,6 +1,7 @@
 import {
   createMaxForLiveDevice,
   addLiveParameter,
+  applyNativePresentation,
   PatchBuilder,
   PatchEditor,
 } from "max4live-ts-tools";
@@ -20,7 +21,6 @@ export function createStereoGain() {
       max: 1,
       default: INITIAL_GAIN,
       at: [330, 30],
-      presentation: { x: 20, y: 20, width: 60, height: 48 },
     },
   );
   const dsp = new PatchBuilder()
@@ -103,5 +103,5 @@ export function createStereoGain() {
     .connect(["initialise", 0], ["smooth", 0])
     .connect(["smooth", 0], ["ramp-list", 1]);
   editor.validateOrThrow();
-  return { ...device, patch: editor.toNormalized() };
+  return applyNativePresentation({ ...device, patch: editor.toNormalized() });
 }

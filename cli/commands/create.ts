@@ -1,6 +1,7 @@
 import { basename, extname } from "node:path";
 import { createMaxForLiveDevice } from "../../amxd/template.js";
 import { withSineGraph } from "../../amxd/sine-template.js";
+import { applyNativePresentation } from "../../amxd/presentation.js";
 import { writeAmxd } from "../../amxd/files.js";
 import type { AmxdDeviceType } from "../../amxd/codec.js";
 import { validateDeviceBuild } from "../../amxd/validate.js";
@@ -25,6 +26,7 @@ export function create(files: string[], options: CliArgs, io: CliIO): number {
   if (!name.trim()) throw new Error("Device name must not be empty");
   let device = createMaxForLiveDevice({ type: type as AmxdDeviceType, name });
   if (options.template === "sine") device = withSineGraph(device);
+  if (!options.bare) device = applyNativePresentation(device);
   validateDeviceBuild(device);
   const validation = validateGraph(device.patch);
   if (!validation.ok)

@@ -33,11 +33,12 @@ test("registered, compact float parameter and explicit stereo signal paths", () 
   const raw = toPatchObject(device.patch).patcher;
   assert.equal(device.type, "audio");
   assert.deepEqual(raw.parameters.gain, ["Gain", "Gain", 0]);
-  assert.equal(raw.devicewidth, 100);
+  assert.equal(raw.devicewidth, 160);
   assert.equal(raw.openinpresentation, 1);
   const gain = device.patch.boxes.get("gain");
   assert.equal(gain.maxclass, "live.dial");
-  assert.deepEqual(gain.passthrough.presentation_rect, [20, 20, 60, 48]);
+  assert.deepEqual(gain.passthrough.presentation_rect, [40, 48, 80, 63]);
+  assert.equal(gain.passthrough.appearance, 3);
   const saved = gain.passthrough.saved_attribute_attributes.valueof;
   assert.deepEqual(saved.parameter_initial, [INITIAL_GAIN]);
   assert.equal(saved.parameter_mmax, 1);

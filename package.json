@@ -45,7 +45,7 @@
     "format:check": "oxfmt --check .",
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
-    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js && node .examples/examples/devices.js && node .examples/examples/parameters.js",
+    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js && node .examples/examples/devices.js && node .examples/examples/parameters.js && node .examples/examples/dial-appearances.js",
     "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check",
     "example:live-tempo": "npm --prefix examples/live-tempo run build"
   },
