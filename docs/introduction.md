@@ -1,43 +1,39 @@
 # Community introduction drafts
 
-Drafts only; no announcements or maintainer contact have been sent. Attach
-`examples/stereo-gain/Stereo Gain.amxd` and use the example's build instructions.
-Send after the example/documentation PRs are merged so the source links resolve.
+Unsent drafts for use after v0.3.0 is published and the links resolve on main.
+Verify the registry version and attach the actual demo/device downloads first.
 
-## Cycling '74 / TypeScript developer community
+## Cycling '74 community
 
-I've been building **max4live-ts-tools**: create, edit, validate and generate Max
-for Live devices programmatically using TypeScript.
+I've been building [max4live-ts-tools](https://github.com/alexgyllos/max4live-ts-tools),
+a TypeScript toolkit for creating, editing and validating Max patches and Max for
+Live devices. TypeScript constructs the patch offline; the generated device uses
+real Max objects and can be opened in Max as usual. It also discovers static
+external dependencies and packages unfrozen devices with their companion files.
 
-TypeScript runs offline to construct the patch; it doesn't need to run inside
-Max. The Stereo Gain example generates a normal audio effect with independent
-stereo paths, a registered Gain parameter, 10 ms smoothing, automation and saved
-state. It uses built-in Max objects and no companion JavaScript. It's been tested
-in Live 12.4.6 / Max 9.1.5, including captured audio levels and saved automation.
+[Simple Chorus](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/simple-chorus)
+is a working example: stereo chorus, native Rate/Depth/Mix controls and a stationary
+LFO preview. You can try its prebuilt device or build it from the TypeScript source.
 
-Try the attached device or build it yourself:
-[Stereo Gain source and instructions](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/stereo-gain).
 The library is on [npm](https://www.npmjs.com/package/max4live-ts-tools).
-I'd welcome reports about real device compatibility, API friction and workflows
-that are still awkward. Frozen/encrypted device editing remains unsupported;
-companion-file dependency packaging is available in the reviewed source candidate.
+I'd welcome feedback on device compatibility and the construction/editing API.
+The examples were tested in Live 12.4.6 / Max 9.1.5; frozen/encrypted device editing
+is unsupported, and static discovery can't identify every runtime dependency.
 
 ## tsln-lab/max-packages maintainers
 
-Hi! I've been developing
-[max4live-ts-tools](https://github.com/alexgyllos/max4live-ts-tools), an offline
-TypeScript toolkit for building, editing, validating and comparing Max patchers
-and Max for Live devices. Our supported `.amxd` codec builds on your
-`@tsln/amxd`; it doesn't replace your runtime libraries.
+Hi! [max4live-ts-tools](https://github.com/alexgyllos/max4live-ts-tools) builds on
+`@tsln/amxd` for its supported binary containers. It adds offline patch/device
+construction, validation, editing and companion-file packaging, complementing
+your TypeScript runtime packages.
 
-[Stereo Gain](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/stereo-gain)
-shows offline generation using standard Max objects. Our
-[Live Tempo example](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/live-tempo)
-shows the complementary workflow: `@tsln/max-types`, `@tsln/lom-types` and
-`@tsln/live-object` for code that runs inside Max, compiled and packaged beside an offline-built
-device through npm scripts. The two projects serve different parts of the same development process.
+The [Live Tempo workflow](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/live-tempo)
+uses your Max/LOM types and `@tsln/live-object`, follows the `create-max` build
+conventions, and packages the generated device with its compiled script and MIT
+notices. [Simple Chorus](https://github.com/alexgyllos/max4live-ts-tools/tree/main/examples/simple-chorus)
+shows the offline-only approach with standard Max objects.
 
-Potential collaboration could include shared rights-cleared container fixtures,
-round-trip interoperability checks, and dependency metadata conventions. I'd be
-interested in feedback on the boundary between offline device construction and
-your typed Max runtime tools. Thanks for making those packages available.
+I'd be interested in shared rights-cleared native fixtures and binary round-trip
+compatibility checks. There's a small [ordered-container API proposal](https://github.com/alexgyllos/max4live-ts-tools/blob/main/docs/tsln-amxd-proposal.md)
+that could simplify our preservation adapter while keeping your existing APIs
+unchanged. Thanks for making these packages available.

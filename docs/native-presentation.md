@@ -23,8 +23,8 @@ const device = applyNativePresentation(
 );
 ```
 
-Import from `max4live-ts-tools`. Use a locally packed reviewed candidate; this
-presentation API is not in the registry's 0.2.0 release.
+Import from `max4live-ts-tools`. This API requires 0.3.0; until publication, use
+the [source build instructions](../CONTRIBUTING.md#build-the-examples-from-source).
 
 The panel is a noninteractive background object using native LCD Background,
 LCD Line and small rounded corners. Automatically placed controls use native LCD
@@ -71,8 +71,8 @@ The user's original Follow System setting was restored afterward.
 From a clean source checkout on supported Node 22.12+ or Node 24, run `npm ci`
 and `npm run examples`. Load `examples/generated/Native Dial Appearances.amxd`
 in Live. The [source](../examples/dial-appearances.ts) uses the same public helpers
-as Stereo Gain. Follow [Stereo Gain's packed-candidate instructions](../examples/stereo-gain/README.md)
-to rebuild its standalone example against this unreleased source.
+as Stereo Gain. Follow [Stereo Gain's build instructions](../examples/stereo-gain/README.md)
+to rebuild its standalone example.
 
 The [versioned native fixtures](../__tests__/fixtures/native-presentation.md)
 record real Max serialization. Tests cover generated geometry, safe legacy

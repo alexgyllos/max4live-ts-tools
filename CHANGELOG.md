@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Native Live presentation, dial appearances and styled CLI templates with `--bare`.
+- Dependency discovery and unfrozen companion-file packaging with licence collection.
+- Node 22 support alongside Node 24.
+- Complete typed Live Tempo build, watch and packaging workflow, plus native fixture tooling.
+- Stereo Gain and Simple Chorus devices, including a stationary LFO preview.
+
 ## 0.2.0 — 2026-10-15
 
 - Unified CLI inspection, validation and structural diffs for `.maxpat` and supported `.amxd` files, with optional bounded container diffs.

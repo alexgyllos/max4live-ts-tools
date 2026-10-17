@@ -2,7 +2,7 @@
 
 Use [Live Tempo](../examples/live-tempo/README.md) as the complete reference: typed runtime code plus an offline public-API device builder, compiled and packaged through npm scripts. The upstream scaffolder supplies TypeScript-to-Max conventions; it does not generate our `.amxd` graph or packaging integration automatically.
 
-Follow the example's **locally packed candidate** installation instructions before running:
+Follow the example's [source build instructions](../CONTRIBUTING.md#build-the-examples-from-source) before running:
 
 ```sh
 npm run build    # typecheck both environments, compile JS, generate .amxd
@@ -11,7 +11,9 @@ npm run package  # actual maxpat companion-file packaging
 npm run watch    # esbuild watches runtime and builder dependencies
 ```
 
-The manifest pins the published toolkit version 0.2.0, but the newer packaging commands require the reviewed source candidate. The repository's packed-consumer check installs that candidate into a clean copy of the example. Registry-only verification of these commands must wait until the corresponding toolkit release; no unpublished version or local path is committed as a dependency.
+The example pins the published 0.2.0 baseline; packaging needs 0.3.0, which is not
+yet published. Root verification installs the locally packed candidate into an
+isolated copy and exercises the public interface.
 
 `src/device.ts` uses Max/Lom types with ES2022 only. `build/generate-device.ts` uses a separate Node context and imports from `max4live-ts-tools`, never repository internals. The runtime bundle follows upstream's neutral CommonJS settings, `browser` condition and disabled tree shaking. Its message handlers stay unexported at top level. `live.thisdevice` triggers initialisation; the upstream observer handle is unsubscribed on reinitialisation/deletion, and a revision guard drops old queued callbacks. No timer, polling or LiveAPI wrapper is reimplemented.
 
@@ -49,7 +51,7 @@ That generated and built a real project. Its registry template pinned older Max 
 
 The standalone example documents its actual Live 12.4.6 / Max 9.1.5 qualification: packaged script resolution with development files moved away, tempo changes, repeated load/delete, native save/reopen and independent stereo capture. Node tests separately check observer lifetime/stale callbacks, handler visibility, types, deterministic generation, dependencies, hashes, licences and esbuild watch rebuilds. They are not a Max emulator.
 
-The [typed native fixture tool](../tools/native-fixtures/README.md) creates actual `Patcher`/`Maxobj` instances, saves through Max, and records version-specific presentation, parameter and project metadata. Ordinary CI compiles it and reads committed fixtures; it never requires Live or Max and never rewrites goldens. The separate native presentation PR is not a dependency of this stack.
+The [typed native fixture tool](../tools/native-fixtures/README.md) creates actual `Patcher`/`Maxobj` instances, saves through Max, and records version-specific presentation, parameter and project metadata. Ordinary CI compiles it and reads committed fixtures; it never requires Live or Max and never rewrites goldens.
 
 Upstream Max types follow the Max 9.2 reference, which includes native console, timers and networking APIs. Typing an API does not make it available in Max 9.1. This example and fixture tool avoid those newer globals. Max 9.2 was unavailable for native testing; preserve separate fixtures when it becomes available. Add console/timer utilities only for a concrete older-runtime requirement, rather than overriding native 9.2 functionality.
 

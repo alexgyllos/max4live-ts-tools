@@ -69,7 +69,11 @@ try {
   const packedPaths = new Set(pack.files.map((file) => file.path));
   for (const [, target] of readme.matchAll(/\]\(([^)]+)\)/g)) {
     if (target.startsWith(repositoryDocs)) {
-      readFileSync(resolve(target.slice(repositoryDocs.length).split("#")[0]));
+      readFileSync(
+        resolve(
+          decodeURIComponent(target.slice(repositoryDocs.length).split("#")[0]),
+        ),
+      );
     } else if (!/^https?:\/\//.test(target) && !target.startsWith("#")) {
       assert(
         packedPaths.has(target.split("#")[0]),

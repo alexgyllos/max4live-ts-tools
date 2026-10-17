@@ -1,18 +1,17 @@
 # Companion files and native Freeze
 
-`deps` and `package` are development-candidate commands targeting a future minor
-release; npm `0.2.0` does not include them. Build the reviewed source candidate:
+`deps` and `package` are available in the 0.3.0 source; npm 0.2.0 does not
+include them. Until publication, follow the
+[source build instructions](../CONTRIBUTING.md#build-the-examples-from-source).
+After installing the toolkit locally:
 
 ```sh
-npm ci
-npm run build
-node dist/cli/index.js deps MyDevice.amxd --json
-node dist/cli/index.js package MyDevice.amxd --output dist/MyDevice
+npx --no-install maxpat deps MyDevice.amxd --json
+npx --no-install maxpat package MyDevice.amxd --output distribution
 ```
 
-Once installed from a candidate tarball, the same commands are available through
-`npx --no-install maxpat`. Packaging creates an **unfrozen companion-file
-distribution**, not a self-contained frozen device.
+Packaging creates an **unfrozen companion-file distribution**. The device and its
+companions must stay together; native Freeze is a separate operation.
 
 The default root is the device's directory. `--root <directory>` sets the project
 layout root; repeat it to add explicit search roots. The device must be inside
@@ -23,7 +22,7 @@ Files resolved from an additional search root are placed at the relative paths
 used by their referring patcher, not under an arbitrary `dependencies/` folder.
 
 ```sh
-node dist/cli/index.js package project/devices/MyDevice.amxd \
+npx --no-install maxpat package project/devices/MyDevice.amxd \
   --root project --output dist/MyDevice \
   --asset project/media/texture.png --asset project/THIRD-PARTY.txt \
   --dry-run --json

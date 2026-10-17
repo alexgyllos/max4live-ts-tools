@@ -5,24 +5,12 @@ public exports. It uses built-in Max objects only: no JavaScript runtime or
 companion files. Native presentation is applied explicitly after constructing the
 unchanged DSP graph.
 
-**This styled revision uses the unreleased `applyNativePresentation()` API.**
-Published npm `0.2.0` does not export it. Install the reviewed candidate from this
-checkout before building; a plain install of the pinned registry dependency is
-not sufficient. Node 22.12+ and Node 24 are supported with Node 22 development types.
+## Build from TypeScript
 
-```sh
-# From the repository root
-npm ci
-npm pack
-cd examples/stereo-gain
-npm install --no-save --package-lock=false ../../max4live-ts-tools-0.2.0.tgz
-npm run build
-npm test
-```
-
-The registry pin/lock remain available for the last published package; the explicit
-tarball install above selects the candidate without rewriting that lockfile.
-Repository `npm run verify` also builds this isolated packed consumer.
+Use Node 22.12+ within Node 22, or Node 24. Follow the
+[source build instructions](../../CONTRIBUTING.md#build-the-examples-from-source),
+selecting `examples/stereo-gain`. The styled device requires toolkit 0.3.0;
+its manifest currently pins the published 0.2.0 baseline.
 
 The [prebuilt Stereo Gain device](Stereo%20Gain.amxd) is checked byte-for-byte
 against the generated output. Load it, or `dist/Stereo Gain.amxd`, on an audio

@@ -1,7 +1,7 @@
 {
   "name": "max4live-ts-tools",
-  "version": "0.2.0",
-  "description": "TypeScript tools for working with Max patcher files",
+  "version": "0.3.0",
+  "description": "Build, edit and validate Max patches and Max for Live devices with TypeScript",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -61,5 +61,14 @@
     "typescript": "7.0.2",
     "vitest": "5.0.4",
     "@tsln/max-types": "0.2.0"
-  }
+  },
+  "keywords": [
+    "max",
+    "max-for-live",
+    "ableton",
+    "amxd",
+    "maxpat",
+    "typescript",
+    "cli"
+  ]
 }

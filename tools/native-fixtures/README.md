@@ -25,6 +25,6 @@ The committed `typed-native-objects-max-9.1.5.maxpat` was instantiated by this u
 
 The tests compare common-object port counts with the earlier independent Max fixture and our builder, check presentation serialization, and require byte-identical native device round-tripping. Max normalises dial heights to 48/80/63 for the selected appearances; it omits some default attributes (including left label alignment) and stores Control Border as `themecolor.live_contrast_frame`. The background flag and native colour expression are serialized; visual inspection confirmed the separator behind the controls. A standalone patcher has no Live parameter registration dictionary; use the device route for that evidence.
 
-Max 9.2 was unavailable. Preserve separate fixtures when checking that version. This utility uses no 9.2 console, timer or networking APIs. The presentation helper remains isolated in PR #14; these fixtures can inform it without depending on or modifying that PR.
+Max 9.2 was unavailable. Preserve separate fixtures when checking that version. This utility uses no 9.2 console, timer or networking APIs.
 
 API reference: [Patcher](https://docs.cycling74.com/apiref/js/patcher/), [upstream Max types](https://github.com/tsln-lab/max-packages/tree/main/packages/max-types).
