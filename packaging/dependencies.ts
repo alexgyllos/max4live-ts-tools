@@ -231,6 +231,8 @@ function objectReference(
   }
   if (!object || ["p", "patcher"].includes(object) || object.startsWith("@"))
     return;
+  // Division operators contain slashes but are native objects, not file paths.
+  if (["/", "/~", "!/", "!/~"].includes(object)) return;
   if (/\.maxpat$/i.test(object))
     return { reference: object, kind: "patcher", label };
   if (/[\\/]/.test(object) || localAbstraction(object, source, roots))
