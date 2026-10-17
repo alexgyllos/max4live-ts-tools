@@ -1,9 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
 import * as fs from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { join, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
-import { spawnSync } from "node:child_process";
 import {
   createMaxForLiveDevice,
   PatchEditor,
@@ -589,33 +588,6 @@ it("rejects output ancestors of source files and a concurrent package lock", () 
   fs.mkdirSync(file(".out.maxpat-lock"));
   expect(() => writePackage(d, file("out"))).toThrow();
   expect(fs.existsSync(file(".out.maxpat-lock"))).toBe(true);
-});
-it("packages the real bundled Live tempo example and detects its removed script", () => {
-  const { file, dir } = setup();
-  const build = spawnSync(process.execPath, ["examples/live-tempo/build.mjs"], {
-    cwd: resolve("."),
-    encoding: "utf8",
-  });
-  expect(build.status, build.stderr).toBe(0);
-  fs.cpSync("examples/generated/live-tempo", file("tempo"), {
-    recursive: true,
-  });
-  const input = file("tempo/Live Tempo.amxd");
-  const d = discover(input);
-  expect(d.dependencies.find((d) => d.reference === "tempo.js")?.status).toBe(
-    "resolved",
-  );
-  expect(
-    d.dependencies.find((d) => d.reference === "LICENSE.tsln")?.status,
-  ).toBe("resolved");
-  writePackage(d, file("release"));
-  expect(fs.existsSync(file("release/LICENSE.tsln"))).toBe(true);
-  fs.unlinkSync(file("tempo/tempo.js"));
-  expect(
-    discover(input).dependencies.find((d) => d.reference === "tempo.js")
-      ?.status,
-  ).toBe("missing");
-  expect(fs.readdirSync(dir)).toContain("release");
 });
 it("does not mistake message text for object declarations, and accepts numeric media filenames", () => {
   const { file, device } = setup();

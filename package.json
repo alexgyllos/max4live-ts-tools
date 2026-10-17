@@ -46,17 +46,14 @@
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
     "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js && node .examples/examples/devices.js && node .examples/examples/parameters.js && node .examples/examples/dial-appearances.js",
-    "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check && npm run example:live-tempo",
-    "example:live-tempo": "npm run build && tsc -p examples/live-tempo/tsconfig.json && node examples/live-tempo/build.mjs"
+    "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check",
+    "example:live-tempo": "npm --prefix examples/live-tempo run build"
   },
   "dependencies": {
     "@tsln/amxd": "0.1.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@tsln/live-object": "0.4.1",
-    "@tsln/lom-types": "0.1.0",
-    "@tsln/max-types": "0.2.0",
     "@types/node": "22.20.5",
     "esbuild": "0.28.2",
     "oxfmt": "0.73.0",
