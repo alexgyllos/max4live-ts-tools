@@ -49,8 +49,4 @@ v0.3.0 supports Node 22.12+ within Node 22, or Node 24. ESM only. Examples teste
 Live 12.4.6 / Max 9.1.5. Frozen and encrypted `.amxd` files are unsupported;
 unfrozen devices may require companion files.
 
-npm currently provides v0.2.0 (Node 24). For Node 22, native styling and
-dependency packaging, use the unpublished v0.3.0 source and follow the
-[source build instructions](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md#build-the-examples-from-source).
-
 [Contributing](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md) · [MIT](LICENSE)
