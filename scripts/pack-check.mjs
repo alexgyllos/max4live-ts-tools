@@ -468,28 +468,30 @@ Root.encodeAmxd(device,{overwrite:false});`,
   console.log(
     `Packed consumer verified: ${pack.filename}; imports/types, installed bin, ${checks.length} CLI cases, four concurrent writers`,
   );
-  const stereo = join(temp, "stereo-gain");
-  cpSync("examples/stereo-gain", stereo, {
-    recursive: true,
-    filter: (path) =>
-      !/(^|[/\\])(node_modules|dist|\.build)([/\\]|$)/.test(path),
-  });
-  requireSuccess(
-    npm(
-      [
-        "install",
-        "--ignore-scripts",
-        "--no-audit",
-        "--no-fund",
-        join(temp, pack.filename),
-      ],
-      stereo,
-    ),
-  );
-  requireSuccess(npm(["test"], stereo));
-  console.log(
-    "Standalone Stereo Gain consumer built and tested against the packed candidate",
-  );
+  for (const example of ["stereo-gain", "simple-chorus"]) {
+    const directory = join(temp, example);
+    cpSync(`examples/${example}`, directory, {
+      recursive: true,
+      filter: (path) =>
+        !/(^|[/\\])(node_modules|dist|\.build)([/\\]|$)/.test(path),
+    });
+    requireSuccess(
+      npm(
+        [
+          "install",
+          "--ignore-scripts",
+          "--no-audit",
+          "--no-fund",
+          join(temp, pack.filename),
+        ],
+        directory,
+      ),
+    );
+    requireSuccess(npm(["test"], directory));
+    console.log(
+      `Standalone ${example} consumer built and tested against the packed candidate`,
+    );
+  }
 } catch (error) {
   verificationError = error;
   throw error;
