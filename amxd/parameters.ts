@@ -3,6 +3,14 @@ import { walkPatch } from "../nested.js";
 import { assertJson } from "../validate/json.js";
 import { MaxpatEditError } from "../errors.js";
 import { validateDeviceProject } from "./validate.js";
+import {
+  applyNativePresentation,
+  hasNativePresentation,
+  AUTO_RECT,
+  DIALS,
+  nativePresentationRect,
+  type LiveDialAppearance,
+} from "./presentation.js";
 import type { AmxdDevice } from "./codec.js";
 import type { BoxSpec, NormalizedPatch, Rect } from "../types.js";
 
@@ -16,6 +24,7 @@ export type LiveParameterOptions = {
   max: number;
   default: number;
   at?: readonly [number, number];
+  appearance?: LiveDialAppearance;
   presentation?: { x: number; y: number; width: number; height: number };
 };
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -136,6 +145,15 @@ function validateOptions(options: LiveParameterOptions): ResolvedParameter {
       "INVALID_PARAMETER",
       "Expected finite patching position [x, y]",
     );
+  if (
+    options.appearance !== undefined &&
+    (typeof options.appearance !== "string" ||
+      !Object.hasOwn(DIALS, options.appearance))
+  )
+    return fail(
+      "INVALID_PARAMETER",
+      "Expected dial appearance vertical, panel or large",
+    );
   if (options.presentation !== undefined)
     presentationRect(options.presentation);
   return { ...options, shortName, varname };
@@ -196,28 +214,26 @@ function presentationRect(
     );
   return [value.x, value.y, value.width, value.height];
 }
-function automaticPresentation(patch: NormalizedPatch): Rect {
+function automaticPresentation(patch: NormalizedPatch, height: number): Rect {
   const occupied = [...patch.boxes.values()]
-    .filter((box) => box.passthrough.presentation === 1)
-    .map((box) => {
-      const rect = box.passthrough.presentation_rect;
-      return Array.isArray(rect) &&
-        rect.length === 4 &&
-        rect.every(
-          (value) => typeof value === "number" && Number.isFinite(value),
-        ) &&
-        rect[2] > 0 &&
-        rect[3] > 0
-        ? (rect as unknown as Rect)
-        : box.patchingRect;
-    })
+    .filter(
+      (box) =>
+        box.passthrough.presentation === 1 &&
+        !(box.maxclass === "panel" && box.passthrough.background === 1),
+    )
+    .map(nativePresentationRect)
     .sort((a, b) => a[0] - b[0]);
   let x = 20;
-  for (const [left, top, width, height] of occupied) {
-    if (top < 68 && top + height > 20 && left < x + 80 && left + width + 20 > x)
+  for (const [left, top, width, occupiedHeight] of occupied) {
+    if (
+      top < 20 + height &&
+      top + occupiedHeight > 20 &&
+      left < x + 80 &&
+      left + width + 20 > x
+    )
       x = left + width + 20;
   }
-  return [x, 20, 60, 48];
+  return [x, 20, 60, height];
 }
 function parameterBox(
   options: ResolvedParameter,
@@ -233,14 +249,18 @@ function parameterBox(
       options.at?.[0] ?? 240 + count * 80,
       options.at?.[1] ?? 50,
       41,
-      48,
+      options.appearance ? DIALS[options.appearance].height : 48,
     ],
     passthrough: {
+      ...(options.appearance === undefined
+        ? {}
+        : { appearance: DIALS[options.appearance].value }),
       outlettype: ["", "float"],
       parameter_enable: 1,
       varname,
       presentation: 1,
       presentation_rect: rect,
+      ...(options.presentation === undefined ? { [AUTO_RECT]: rect } : {}),
       // Native Max 9.1.5 float attributes; defaults omitted in the same way Max saves them.
       saved_attribute_attributes: {
         valueof: {
@@ -271,7 +291,10 @@ export function addLiveParameter(
   assertNoConflicts(device.patch, registration, options);
   const rect =
     options.presentation === undefined
-      ? automaticPresentation(device.patch)
+      ? automaticPresentation(
+          device.patch,
+          options.appearance ? DIALS[options.appearance].height : 48,
+        )
       : presentationRect(options.presentation);
   const layout =
     options.presentation === undefined
@@ -302,11 +325,14 @@ export function addLiveParameter(
       },
     });
   editor.validateOrThrow();
-  return {
+  const result: AmxdDevice = {
     type: device.type,
     patch: editor.toNormalized(),
     ...(device.container === undefined
       ? {}
       : { container: structuredClone(device.container) }),
   };
+  return hasNativePresentation(device.patch)
+    ? applyNativePresentation(result)
+    : result;
 }

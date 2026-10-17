@@ -8,6 +8,7 @@ import {
   validateGraph,
   writeAmxd,
   createMaxForLiveDevice,
+  applyNativePresentation,
   diffPatches,
 } from "../index.js";
 vi.mock("node:fs", async (original) => {
@@ -69,7 +70,9 @@ it.each(["audio", "midi", "instrument"] as const)(
     expect(
       diffPatches(
         device.patch,
-        createMaxForLiveDevice({ type, name: "My Device" }).patch,
+        applyNativePresentation(
+          createMaxForLiveDevice({ type, name: "My Device" }),
+        ).patch,
       ).equal,
     ).toBe(true);
   },
@@ -185,4 +188,33 @@ it("reports persistent post-commit cleanup failure accurately", () => {
     },
   });
   expect(readAmxd(file("Committed.amxd")).type).toBe("audio");
+});
+
+it.each(["audio", "midi", "instrument"] as const)(
+  "retains the original %s scaffold with --bare",
+  (type) => {
+    const { file } = setup(),
+      output = file("Bare.amxd");
+    expect(cli("create", type, output, "--bare").status).toBe(0);
+    expect(
+      diffPatches(
+        readAmxd(output).patch,
+        createMaxForLiveDevice({ type, name: "Bare" }).patch,
+      ).equal,
+    ).toBe(true);
+  },
+);
+it("accepts a bare sine template but rejects --bare on other commands", () => {
+  const { file } = setup(),
+    output = file("Bare sine.amxd");
+  expect(
+    cli("create", "instrument", output, "--template", "sine", "--bare").status,
+  ).toBe(0);
+  expect(
+    [...readAmxd(output).patch.boxes.values()].some(
+      (b) => b.maxclass === "panel",
+    ),
+  ).toBe(false);
+  expect(cli("inspect", output, "--bare").status).toBe(2);
+  expect(cli("--version", "--bare").status).toBe(2);
 });
