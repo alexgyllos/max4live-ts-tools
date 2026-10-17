@@ -45,12 +45,12 @@ audio track in Live. Source build instructions are in each example.
 
 ## Compatibility
 
-Node 22.12+ within Node 22, or Node 24. ESM only. Examples tested in
+v0.3.0 supports Node 22.12+ within Node 22, or Node 24. ESM only. Examples tested in
 Live 12.4.6 / Max 9.1.5. Frozen and encrypted `.amxd` files are unsupported;
 unfrozen devices may require companion files.
 
-Native styling and dependency packaging require v0.3.0, which is not yet
-published. For these APIs, follow the
+npm currently provides v0.2.0 (Node 24). For Node 22, native styling and
+dependency packaging, use the unpublished v0.3.0 source and follow the
 [source build instructions](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md#build-the-examples-from-source).
 
 [Contributing](https://github.com/alexgyllos/max4live-ts-tools/blob/main/CONTRIBUTING.md) · [MIT](LICENSE)
