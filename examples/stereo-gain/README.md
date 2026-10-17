@@ -1,20 +1,28 @@
 # Stereo Gain
 
-A compact stereo audio effect built offline in TypeScript with the public
-`max4live-ts-tools@0.2.0` package. The generated device uses built-in Max objects
-only: no JavaScript runtime or companion files.
+A compact stereo audio effect built offline in TypeScript through the package's
+public exports. It uses built-in Max objects only: no JavaScript runtime or
+companion files. Native presentation is applied explicitly after constructing the
+unchanged DSP graph.
 
-The example supports Node 22.12+ and Node 24, with Node 22 development types.
-The pinned public `0.2.0` dependency still declares Node 24 in its metadata, so
-npm warns on Node 22 (and `engine-strict` rejects that registry version). Its
-build/tests pass on both versions; the packed candidate removes this mismatch.
+**This styled revision uses the unreleased `applyNativePresentation()` API.**
+Published npm `0.2.0` does not export it. Install the reviewed candidate from this
+checkout before building; a plain install of the pinned registry dependency is
+not sufficient. Node 22.12+ and Node 24 are supported with Node 22 development types.
 
 ```sh
+# From the repository root
+npm ci
+npm pack
 cd examples/stereo-gain
-npm install
+npm install --no-save --package-lock=false ../../max4live-ts-tools-0.2.0.tgz
 npm run build
 npm test
 ```
+
+The registry pin/lock remain available for the last published package; the explicit
+tarball install above selects the candidate without rewriting that lockfile.
+Repository `npm run verify` also builds this isolated packed consumer.
 
 The [prebuilt Stereo Gain device](Stereo%20Gain.amxd) is checked byte-for-byte
 against the generated output. Load it, or `dist/Stereo Gain.amxd`, on an audio
@@ -62,3 +70,42 @@ settled recall and playback ramps; they do not measure the very first DSP vector
 at device instantiation. Initialisation wiring and construction-time signal value
 are covered separately by graph tests. Capture devices and Sets are qualification
 tools, not dependencies of Stereo Gain or the ordinary test suite.
+
+### Native presentation qualification — 2026-10-16
+
+The styled candidate was tested separately in Live 12.4.6 / Max 9.1.5. The Large
+Gain dial and reusable dark inset follow Live's appearance without separate
+palettes. Native LCD foreground references keep labels, values and the needle
+readable against LCD Background in both appearances. Real screenshots:
+
+![Dark appearance](../../docs/images/stereo-gain-dark.png)
+![Light appearance](../../docs/images/stereo-gain-light.png)
+
+Audio, MIDI, silent instrument, playable sine, Stereo Gain and eight-parameter
+interfaces loaded, rendered in light/dark, survived Edit in Max/save and a Live
+Set save/reopen. Control interaction remained available; decoration added no
+registered parameters. Long and wide-glyph names were inspected in Live.
+Stock Erosion/Roar and Creative Extensions supplied visual references.
+
+Fresh 48 kHz / 16-bit captures through the styled audio scaffold and Stereo Gain
+measured peaks of 0.10001/0.04999 at Gain 0.5, 0.20001/0.10001 at Gain 1, and exact
+silence at Gain 0. The 0.5 → 1 transition's 1%–99% rise was about 9.83 ms.
+Recorded 0 → 1 → 0 automation survived Set reopening and reproduced silence/unity
+in captured playback; the saved zero Gain also recalled. The styled MIDI scaffold
+passed alternating note-on/off messages into the sine instrument (audible intervals
+peaked at 0.07874 on both channels, alternating with silence). The silent scaffold
+captured exact silence. As above, capture starts after 500 ms; first-vector
+initialisation is covered by structural tests, not these recordings.
+
+Live 11.3.43 additionally loaded and visually rendered styled Stereo Gain; full
+DSP/automation qualification was performed in Live 12, not Live 11.
+
+The inset revision removes the internal AUDIO EFFECT heading and separator;
+Stereo Gain still has exactly one registered parameter and the same processing,
+smoothing and initialisation graph. [Before/after and the three-dial comparison](../../docs/native-presentation.md).
+
+The revised inset candidate was requalified in Live 12.4.6 / Max 9.1.5 with native
+save/reload, zero Gain recall and recorded 0/1/0 automation replay. Fresh capture
+peaks were 0.100006/0.049988 at Gain 0.5, 0.200012/0.100006 at 1, and exact silence
+at 0. The native-saved processing graph and parameter semantics match the prior
+fixture exactly; the inset and palette introduce no DSP changes.

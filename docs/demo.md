@@ -1,7 +1,8 @@
 # One-minute Stereo Gain demonstration
 
-Use `examples/stereo-gain/Stereo Gain.amxd`, or rebuild with the pinned public
-package: `cd examples/stereo-gain && npm install && npm run build`. The example's
+Use `examples/stereo-gain/Stereo Gain.amxd`, or rebuild using the
+[candidate installation instructions](../examples/stereo-gain/README.md). The
+styled revision needs an unreleased public export; npm 0.2.0 alone is insufficient. The example's
 README contains measured native results. No video is included in this change;
 this is a recording script using actual Live output, not a synthetic animation.
 

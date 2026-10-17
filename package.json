@@ -45,7 +45,7 @@
     "format:check": "oxfmt --check .",
     "prepack": "npm run build",
     "pack:check": "node scripts/pack-check.mjs",
-    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js && node .examples/examples/devices.js && node .examples/examples/parameters.js",
+    "examples": "tsc -p examples/tsconfig.json && node .examples/examples/create.js && node .examples/examples/advanced.js && node .examples/examples/devices.js && node .examples/examples/parameters.js && node .examples/examples/dial-appearances.js",
     "verify": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run examples && npm run pack:check && npm run fixtures:build",
     "example:live-tempo": "npm --prefix examples/live-tempo run build",
     "fixtures:build": "npm run build && tsc -p tools/native-fixtures/tsconfig.json && esbuild tools/native-fixtures/generate.ts --bundle --format=cjs --platform=neutral --conditions=browser --main-fields=main,module --target=es2022 --tree-shaking=false --outfile=.native-fixtures/generate.js && node tools/native-fixtures/build-host.mjs"

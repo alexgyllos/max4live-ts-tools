@@ -17,6 +17,7 @@
     "dist",
     "examples/live-tempo",
     "examples/stereo-gain",
-    "tools/native-fixtures"
+    "tools/native-fixtures",
+    "examples/simple-chorus"
   ]
 }
